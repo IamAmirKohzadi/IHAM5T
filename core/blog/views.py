@@ -57,6 +57,8 @@ class PostEditView(LoginRequiredMixin,UpdateView):
     success_url = '/blog/post/'
     #we are creating this filter in order that only the user owner or admin can edit a post!#
     def get_queryset(self):
+        if self.request.user.is_superuser:
+            return Post.objects.all()
         return Post.objects.filter(author__user=self.request.user)
 
 class PostDeleteView(LoginRequiredMixin,DeleteView):
@@ -64,4 +66,6 @@ class PostDeleteView(LoginRequiredMixin,DeleteView):
     success_url = '/blog/post/'
     #we are creating this filter in order that only the user owner or admin can delete a post!#
     def get_queryset(self):
+        if self.request.user.is_superuser:
+            return Post.objects.all()
         return Post.objects.filter(author__user=self.request.user)
