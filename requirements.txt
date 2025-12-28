@@ -1,5 +1,20 @@
+# General modules
 django
 pillow
 djangorestframework
+djangorestframework-simplejwt
+
+
+# Third party modules
 markdown       # Markdown support for the browsable API.
 django-filter
+drf-yasg
+drf-yasg[validation]
+drf_spectacular
+
+# deployment modules
+
+
+
+# Email backends
+django-mail-templated
