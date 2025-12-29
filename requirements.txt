@@ -11,8 +11,7 @@ django-filter
 drf-yasg
 drf-yasg[validation]
 drf_spectacular
-
-# deployment modules
+Faker          #fake data generation.
 
 
 
