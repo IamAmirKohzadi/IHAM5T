@@ -12,3 +12,6 @@ class ContactView(TemplateView):
 
 class NewsletterView(TemplateView):
     template_name = "website/newsletter.html"
+
+class BlogHome(TemplateView):
+    template_name = "blogApi/blog-home.html"

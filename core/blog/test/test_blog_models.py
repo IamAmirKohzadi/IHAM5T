@@ -13,14 +13,15 @@ class TestPostModel(TestCase):
             description = 'test_description',
             )
     def test_create_post(self):
+        category = Category.objects.create(name='test')
         post = Post.objects.create(
             author = self.profile,
             title = 'test',
             content ='test1',
-            category = None,
             status = True,
             published_date = datetime.now()
         )
+        post.categories.add(category)
         self.assertTrue(Post.objects.filter(pk=post.id).exists())
     
     

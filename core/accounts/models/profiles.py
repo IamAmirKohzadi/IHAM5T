@@ -10,6 +10,10 @@ class Profile(models.Model):
     last_name = models.CharField(max_length=250,blank=True)
     image = models.ImageField(blank=True,null=True)
     description = models.TextField(blank=True)
+    facebook_url = models.URLField(blank=True)
+    twitter_url = models.URLField(blank=True)
+    github_url = models.URLField(blank=True)
+    behance_url = models.URLField(blank=True)
     created_date = models.DateTimeField(auto_now_add=True)
     updated_date = models.DateTimeField(auto_now=True)
     

@@ -8,8 +8,8 @@ app_name = 'api-v1'
 #dynamic url pattern using DefaultRouter!it uses the PostModelViewSet and CategoryModelViewSet and generate urls for them base on their function automatically!#
 router = DefaultRouter()
 
-router.register('post',views.PostModelViewSet,basename='post')
-router.register('category',views.CategoryModelViewSet,basename='category')
+router.register('post',views.PostModelViewSet,basename='post') #post-list
+router.register('category',views.CategoryModelViewSet,basename='category') #category-list
 
 urlpatterns = router.urls
 

@@ -1,22 +1,96 @@
 {% load static %}
+<style>
+    .user-info-widget .author-avatar {
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 50%;
+        display: block;
+        margin: 0 auto 15px;
+    }
+    .user-info-widget .social-disabled {
+        pointer-events: none;
+        opacity: 0.4;
+    }
+</style>
 
 <div class="single-sidebar-widget user-info-widget">
-    <img src="{% static 'img/blog/user-info.png' %}" alt="">
+    <img id="top-author-image" class="author-avatar" src="{% static 'img/blog/NoUser.jpg' %}" alt="">
     <a href="#">
-        <h4>hashem egzooz</h4>
+        <h4 id="top-author-name"></h4>
     </a>
-    <p>
-        Senior blog writer
+    <p id="top-author-title">
+        blogger of the month!
     </p>
+    <p id="top-author-stats"></p>
     <ul class="social-links">
-        <li><a href="#"><i class="fa fa-facebook"></i></a></li>
-        <li><a href="#"><i class="fa fa-twitter"></i></a></li>
-        <li><a href="#"><i class="fa fa-github"></i></a></li>
-        <li><a href="#"><i class="fa fa-behance"></i></a></li>
+        <li><a id="top-author-facebook" href="#"><i class="fa fa-facebook"></i></a></li>
+        <li><a id="top-author-twitter" href="#"><i class="fa fa-twitter"></i></a></li>
+        <li><a id="top-author-github" href="#"><i class="fa fa-github"></i></a></li>
+        <li><a id="top-author-behance" href="#"><i class="fa fa-behance"></i></a></li>
     </ul>
-    <p>
-        Boot camps have its supporters andit sdetractors. Some people do not understand why you
-        should have to spend money on boot camp when you can get. Boot camps have itssuppor ters
-        andits detractors.
+    <p id="top-author-desc">
+       
     </p>
 </div>
+<script>
+    window.addEventListener('load', function () {
+        if (!window.jQuery) {
+            return;
+        }
+
+        $.getJSON("{% url 'blog:api-v1:post-top-author' %}", function (data) {
+            var defaultImage = "{% static 'img/blog/NoUser.jpg' %}";
+            if (!data || !data.author_name) {
+                $("#top-author-name").text("");
+                $("#top-author-title").text("We have no chosen blogger this month.");
+                $("#top-author-stats").text("");
+                $("#top-author-desc").text("");
+                $("#top-author-image").attr("src", defaultImage);
+                $(".social-links").hide();
+                return;
+            }
+
+            $(".social-links").show();
+
+            var imageUrl = data.author_image ? data.author_image : defaultImage;
+
+            $("#top-author-name").text(data.author_name);
+            $("#top-author-image").attr("src", imageUrl);
+
+            var statsText = "Top author: " + (data.total_views || 0) + " views in last " + (data.period_days || 30) + " days";
+            if (data.post_count !== undefined) {
+                statsText += " (" + data.post_count + " posts)";
+            }
+            $("#top-author-stats").text(statsText);
+
+            var desc = data.author_description ? data.author_description : "No bio yet!";
+            $("#top-author-desc").text(desc);
+
+            var links = data.social_links || {};
+            setSocialLink("#top-author-facebook", links.facebook);
+            setSocialLink("#top-author-twitter", links.twitter);
+            setSocialLink("#top-author-github", links.github);
+            setSocialLink("#top-author-behance", links.behance);
+        });
+    });
+
+    function setSocialLink(selector, url) {
+        var $link = $(selector);
+        if (url) {
+            $link.attr("href", url);
+            $link.attr("target", "_blank");
+            $link.attr("rel", "noopener");
+            $link.attr("title", "");
+            $link.removeClass("social-disabled");
+            $link.attr("aria-disabled", "false");
+        } else {
+            $link.removeAttr("href");
+            $link.removeAttr("target");
+            $link.removeAttr("rel");
+            $link.attr("title", "No link available");
+            $link.addClass("social-disabled");
+            $link.attr("aria-disabled", "true");
+        }
+    }
+</script>

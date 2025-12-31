@@ -12,14 +12,15 @@ class TestBlogViews(TestCase):
             last_name = 'test_last_name',
             description = 'test_description',
             )
+        self.category = Category.objects.create(name='test')
         self.post = Post.objects.create(
             author = self.profile,
             title = 'test',
             content ='test1',
-            category = None,
             status = True,
             published_date = datetime.now()
         )
+        self.post.categories.add(self.category)
 
     def test_blog_index_url_response(self):
         url = reverse('blog:cbv-index')

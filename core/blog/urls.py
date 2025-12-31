@@ -16,6 +16,6 @@ urlpatterns = [
     path('post/create',views.PostCreateView.as_view(),name='post-create'),
     path('google',views.RedirectToGoogle.as_view(),name='redirect-google'),
     #until now we used ClassBasedViews!now we use ApiView!#
-    path('api/v1/', include('blog.api.v1.urls')),#function based api!#
+    path('api/v1/', include(('blog.api.v1.urls'), namespace='api-v1')),#function based api!#
     path('post/api',views.PostListApi.as_view(),name='post-list-api')
 ]

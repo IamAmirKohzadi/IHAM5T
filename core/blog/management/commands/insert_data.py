@@ -4,12 +4,13 @@ from accounts.models import User,Profile
 from blog.models import Post,Category
 import random
 from django.utils import timezone
-category_list = [
+
+DEFAULT_CATEGORY_NAMES = [
     'IT',
     'Design',
     'Football',
     'Politics',
-    'Nature'
+    'Nature',
 ]
 
 class Command(BaseCommand):
@@ -27,15 +28,20 @@ class Command(BaseCommand):
         profile.description = self.fake.paragraph(nb_sentences=5)
         profile.save()
 
-        for items in category_list:
-                Category.objects.get_or_create(name=items)
+        categories = list(Category.objects.all())
+        if not categories:
+            for name in DEFAULT_CATEGORY_NAMES:
+                Category.objects.get_or_create(name=name)
+            categories = list(Category.objects.all())
 
         for i in range(5):
-            Post.objects.create(
+            post = Post.objects.create(
                 author=profile,
                 title=self.fake.sentence(),
                 content=self.fake.paragraph(nb_sentences=10),
                 status=random.choice([True, False]),
-                category=Category.objects.get(name=random.choice(category_list)),
-                published_date = timezone.now(),
-    )
+                published_date=timezone.now(),
+            )
+            if categories:
+                count = min(len(categories), random.randint(1, 3))
+                post.categories.set(random.sample(categories, count))

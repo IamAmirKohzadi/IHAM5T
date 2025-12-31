@@ -11,7 +11,7 @@ class test_post_form(TestCase):
         form = PostFrom(data={
             'title':'test',
             'content':'test1',
-            'category':cat_obj,
+            'categories':[cat_obj.id],
             'status':True,
             'published_date':datetime.now(),
         })

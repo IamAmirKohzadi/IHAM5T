@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
 {% load static %}
-{% load blog_tags %}
 {% block content %}
 
 <!-- start banner Area -->
@@ -90,82 +89,158 @@
 	<div class="container">
 		<div class="row">
 			<div class="col-lg-8 posts-list">
-				{% for post in posts %}
+				<div id="posts-list"></div>
 
-				<div class="single-post row">
-					<div class="col-lg-3  col-md-3 meta-details">
-						<ul class="tags">
-							<li>
-								{% for cat in post.category.all %}
-								<a href="{% url 'blog:category' cat_name=cat.name %}">{{cat.name}}</a>{% if not forloop.last %}, {% endif %}
-								{% endfor %}
-							</li>
-						</ul>
-						<div class="user-details row">
-							<p class="user-name col-lg-12 col-md-12 col-6"><a
-									href="{% url 'blog:author' author_username=post.author.username %}">{{post.author.get_full_name}}</a>
-								<span class="lnr lnr-user"></span>
-							</p>
-							<p class="date col-lg-12 col-md-12 col-6"><a href="#">{{post.published_date| date:'d/M/Y'}}</a> <span class="lnr lnr-calendar-full"></span></p>
-							<p class="view col-lg-12 col-md-12 col-6"><a href="#">{{post.counted_view}}</a> <span
-									class="lnr lnr-eye"></span></p>
-							<p class="comments col-lg-12 col-md-12 col-6"><a href="#">{{post.comment_count}}</a> <span
-									class="lnr lnr-bubble"></span></p>
+				<template id="post-template">
+					<div class="single-post row">
+						<div class="col-lg-3 col-md-3 meta-details">
+							<ul class="tags">
+								<li class="post-category"></li>
+							</ul>
+							<div class="user-details row">
+								<p class="user-name col-lg-12 col-md-12 col-6">
+									<a href="#" class="post-author"></a>
+									<span class="lnr lnr-user"></span>
+								</p>
+								<p class="date col-lg-12 col-md-12 col-6">
+									<span class="post-date"></span>
+									<span class="lnr lnr-calendar-full"></span>
+								</p>
+								<p class="view col-lg-12 col-md-12 col-6">
+									<span class="post-views"></span>
+									<span class="lnr lnr-eye"></span>
+								</p>
+							</div>
+						</div>
+						<div class="col-lg-9 col-md-9">
+							<div class="feature-img">
+								<img class="img-fluid post-image" src="" alt="">
+							</div>
+							<a class="posts-title post-link" href="#">
+								<h3 class="post-title"></h3>
+							</a>
+							<p class="excert post-excerpt"></p>
+							<a href="#" class="primary-btn post-link">View More</a>
 						</div>
 					</div>
-					<div class="col-lg-9 col-md-9 ">
-						<div class="feature-img">
-							<img class="img-fluid" src="{{post.image.url}}" alt="">
-						</div>
-						<a class="posts-title" href="{% url 'blog:single' pid=post.id %}">
-							<h3>{{post.title}}</h3>
-						</a>
-						<p class="excert">
-							{{post.content|truncatechars:50}}
-						</p>
-						<a href="{% url 'blog:single' pid=post.id %}" class="primary-btn">View More</a>
-					</div>
-				</div>
-				{% endfor %}
+				</template>
+
 
 				<nav class="blog-pagination justify-content-center d-flex">
-					<ul class="pagination">
-						{% if posts.has_previous %}
-						<li class="page-item">
-							<a href="?page={{ posts.previous_page_number }}" class="page-link" aria-label="Previous">
-								<span aria-hidden="true">
-									<span class="lnr lnr-chevron-left"></span>
-								</span>
-							</a>
-						</li>
-						{% endif %}
-
-						{% for i in posts.paginator.page_range %}
-						<li class="page-item {% if posts.number == i %}active{% endif %}">
-							<a href="?page={{ i }}" class="page-link">{{ i }}</a>
-						</li>
-						{% endfor %}
-
-						{% if posts.has_next %}
-						<li class="page-item">
-							<a href="?page={{ posts.next_page_number }}" class="page-link" aria-label="Next">
-								<span aria-hidden="true">
-									<span class="lnr lnr-chevron-right"></span>
-								</span>
-							</a>
-						</li>
-						{% endif %}
-					</ul>
+					<ul class="pagination" id="posts-pagination"></ul>
 				</nav>
+				<script>
+					function formatDateTime(value) {
+						if (!value) {
+							return "";
+						}
+						var date = new Date(value);
+						if (isNaN(date.getTime())) {
+							return "";
+						}
+						return new Intl.DateTimeFormat("en-GB", {
+							day: "2-digit",
+							month: "short",
+							year: "numeric",
+							hour: "2-digit",
+							minute: "2-digit"
+						}).format(date);
+					}
+
+					window.addEventListener('load', function () {
+						if (!window.jQuery) {
+							return;
+						}
+
+						var params = new URLSearchParams(window.location.search);
+						var page = parseInt(params.get('page') || '1', 10);
+						var apiUrl = "{% url 'blog:api-v1:post-list' %}?page=" + page;
+						var defaultImage = "{% static 'img/blog/default.jpg' %}";
+						var query = params.get('search');
+						if (query) {
+							apiUrl += "&search=" + encodeURIComponent(query);
+						}
+						var category = params.get('categories') || params.get('category');
+						if (category) {
+							apiUrl += "&categories=" + encodeURIComponent(category);
+						}
+						var author = params.get('author');
+						if (author) {
+							apiUrl += "&author=" + encodeURIComponent(author);
+						}
+
+						$.getJSON(apiUrl, function (data) {
+							var posts = data.results || data;
+							var $list = $("#posts-list");
+							var $pagination = $("#posts-pagination");
+							$list.empty();
+							$pagination.empty();
+
+							posts.forEach(function (p) {
+								var $item = $($("#post-template").html());
+								var imageUrl = p.image ? p.image : defaultImage;
+								var categoriesInfo = Array.isArray(p.categories_info) ? p.categories_info : [];
+								if (!categoriesInfo.length && Array.isArray(p.categories)) {
+									categoriesInfo = p.categories.map(function (name) {
+										return { name: name };
+									});
+								}
+								var categoryLinks = categoriesInfo.map(function (cat) {
+									var name = cat.name || "";
+									var link = "{% url 'website:blog-home' %}";
+									if (cat.id) {
+										link += "?categories=" + encodeURIComponent(cat.id);
+									} else {
+										link = "#";
+									}
+									return '<a href="' + link + '">' + name + '</a>';
+								}).join(", ");
+								$item.find(".post-title").text(p.title || "");
+								$item.find(".post-link").attr("href", (p.urls && p.urls.relative) ? p.urls.relative : "#");
+								$item.find(".post-excerpt").text(p.excerpt || "");
+								$item.find(".post-image").attr("src", imageUrl);
+								var authorLink = "{% url 'website:blog-home' %}";
+								if (p.author_id) {
+									authorLink += "?author=" + encodeURIComponent(p.author_id);
+								}
+								$item.find(".post-author").attr("href", authorLink);
+								$item.find(".post-author").text(p.author_name || "");
+								$item.find(".post-category").html(categoryLinks);
+								$item.find(".post-date").text(formatDateTime(p.created_date));
+								$item.find(".post-views").text(p.counted_view || 0);
+								$list.append($item);
+							});
+
+							if (data.number_of_pages) {
+								for (var i = 1; i <= data.number_of_pages; i++) {
+									var active = (i === page) ? " active" : "";
+									var link = "?page=" + i;
+									if (query) {
+										link += "&search=" + encodeURIComponent(query);
+									}
+									if (category) {
+										link += "&categories=" + encodeURIComponent(category);
+									}
+									if (author) {
+										link += "&author=" + encodeURIComponent(author);
+									}
+									$pagination.append(
+										'<li class="page-item' + active + '"><a class="page-link" href="' + link + '">' + i + '</a></li>'
+									);
+								}
+							}
+						});
+					});
+				</script>
 			</div>
 			<div class="col-lg-4 sidebar-widgets">
 				<div class="widget-wrap">
-					{% include 'blog/blog-search.html' %}
-					{% include 'blog/blog-writer.html' %}
+					{% include 'blogApi/blog-search.html' %}
+					{% include 'blogApi/blog-writer.html' %}
 
-					{% include 'blog/blog-ads.html' %}
-					{% postcategories %}
-					{% include 'blog/blog-tags.html' %}
+					{% include 'blogApi/blog-ads.html' %}
+					
+					{% include 'blogApi/blog-tags.html' %}
 				</div>
 			</div>
 		</div>
