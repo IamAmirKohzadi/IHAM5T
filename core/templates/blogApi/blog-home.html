@@ -25,7 +25,7 @@
 		padding: 16px;
 		width: 720px;
 		max-width: 90vw;
-		box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+		box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
 	}
 
 	.post-modal-card input[type="text"],
@@ -67,6 +67,43 @@
 		color: #2e7d32;
 	}
 
+	.post-reactions {
+		display: flex;
+		gap: 10px;
+		align-items: center;
+		flex-wrap: wrap;
+	}
+
+	.user-details .reactions {
+		text-align: right;
+	}
+
+	.user-details .post-reactions {
+		justify-content: flex-end;
+		width: 100%;
+	}
+
+	.post-reaction {
+		font-size: 14px;
+		color: #777;
+		text-decoration: none;
+	}
+
+	.post-reaction i {
+		font-size: 16px;
+	}
+
+	.post-reaction.active {
+		color: #0b5ed7;
+		font-weight: 600;
+	}
+
+	.post-reaction-message {
+		font-size: 12px;
+		color: #d9534f;
+		margin-top: 6px;
+	}
+
 	.create-post-widget {
 		text-align: center;
 		margin-bottom: 20px;
@@ -84,6 +121,15 @@
 		border-radius: 6px;
 		padding: 8px;
 		margin-bottom: 10px;
+	}
+
+	.filter-widget select {
+		width: 100%;
+		border: 1px solid #ddd;
+		border-radius: 4px;
+		padding: 8px;
+		font-size: 13px;
+		margin-bottom: 8px;
 	}
 </style>
 
@@ -105,6 +151,9 @@
 	</div>
 </section>
 <!-- End banner Area -->
+<div id="post-react-meta" data-authenticated="{% if request.user.is_authenticated %}true{% else %}false{% endif %}"
+	data-verified="{% if request.user.is_authenticated and request.user.is_verified %}true{% else %}false{% endif %}"
+	style="display:none;"></div>
 
 <!-- Start top-category-widget Area -->
 <section class="top-category-widget-area pt-90 pb-90 ">
@@ -179,9 +228,7 @@
 				<template id="post-template">
 					<div class="single-post row">
 						<div class="col-lg-3 col-md-3 meta-details">
-							<ul class="tags">
-								<li class="post-category"></li>
-							</ul>
+							<ul class="tags post-categories"></ul>
 							<div class="user-details row">
 								<p class="user-name col-lg-12 col-md-12 col-6">
 									<a href="#" class="post-author"></a>
@@ -194,6 +241,21 @@
 								<p class="view col-lg-12 col-md-12 col-6">
 									<span class="post-views"></span>
 									<span class="lnr lnr-eye"></span>
+								</p>
+								<p class="comments col-lg-12 col-md-12 col-6">
+									<span class="post-comments"></span>
+									<span class="lnr lnr-bubble"></span>
+								</p>
+								<p class="reactions col-lg-12 col-md-12 col-6">
+									<span class="post-reactions">
+										<a href="#" class="post-reaction post-like" data-value="1"><i
+												class="fa fa-thumbs-up"></i>
+											<span class="post-like-count">0</span></a>
+										<a href="#" class="post-reaction post-dislike" data-value="-1"><i
+												class="fa fa-thumbs-down"></i>
+											<span class="post-dislike-count">0</span></a>
+									</span>
+									<div class="post-reaction-message" style="display:none;"></div>
 								</p>
 							</div>
 						</div>
@@ -241,6 +303,22 @@
 						}).format(date);
 					}
 
+					function buildCategoryItems(categoriesInfo) {
+						if (!categoriesInfo.length) {
+							return '<li><a href="#">Uncategorized</a></li>';
+						}
+						return categoriesInfo.map(function (cat) {
+							var name = cat.name || "";
+							var link = "{% url 'website:blog-home' %}";
+							if (cat.id) {
+								link += "?categories=" + encodeURIComponent(cat.id);
+							} else {
+								link = "#";
+							}
+							return '<li><a href="' + link + '">' + name + '</a></li>';
+						}).join("");
+					}
+
 					window.addEventListener('load', function () {
 						if (!window.jQuery) {
 							return;
@@ -250,6 +328,7 @@
 						var page = parseInt(params.get('page') || '1', 10);
 						var apiUrl = "{% url 'blog:api-v1:post-list' %}?page=" + page;
 						var defaultImage = "{% static 'img/blog/default.jpg' %}";
+						var ordering = params.get('ordering');
 						var query = params.get('search');
 						if (query) {
 							apiUrl += "&search=" + encodeURIComponent(query);
@@ -258,10 +337,11 @@
 						if (category) {
 							apiUrl += "&categories=" + encodeURIComponent(category);
 						}
-						var author = params.get('author');
-						if (author) {
-							apiUrl += "&author=" + encodeURIComponent(author);
+						if (ordering) {
+							apiUrl += "&ordering=" + encodeURIComponent(ordering);
 						}
+
+						$("#filter-ordering").val(ordering || "");
 
 						$.getJSON(apiUrl, function (data) {
 							var posts = data.results || data;
@@ -269,6 +349,11 @@
 							var $pagination = $("#posts-pagination");
 							$list.empty();
 							$pagination.empty();
+
+							if (data.number_of_pages && page > data.number_of_pages) {
+								window.location.href = "{% url 'website:blog-home' %}";
+								return;
+							}
 
 							posts.forEach(function (p) {
 								var $item = $($("#post-template").html());
@@ -279,16 +364,7 @@
 										return { name: name };
 									});
 								}
-								var categoryLinks = categoriesInfo.map(function (cat) {
-									var name = cat.name || "";
-									var link = "{% url 'website:blog-home' %}";
-									if (cat.id) {
-										link += "?categories=" + encodeURIComponent(cat.id);
-									} else {
-										link = "#";
-									}
-									return '<a href="' + link + '">' + name + '</a>';
-								}).join(", ");
+								var categoryLinks = buildCategoryItems(categoriesInfo);
 								$item.find(".post-title").text(p.title || "");
 								var detailBase = "{% url 'website:blog-home' %}";
 								$item.find(".post-link").attr("href", p.id ? (detailBase + p.id + "/") : "#");
@@ -300,9 +376,25 @@
 								}
 								$item.find(".post-author").attr("href", authorLink);
 								$item.find(".post-author").text(p.author_name || "");
-								$item.find(".post-category").html(categoryLinks);
+								$item.find(".post-categories").html(categoryLinks);
 								$item.find(".post-date").text(formatDateTime(p.created_date));
 								$item.find(".post-views").text(p.counted_view || 0);
+								var commentCount = parseInt(p.comments_count, 10);
+								if (isNaN(commentCount)) {
+									commentCount = 0;
+								}
+								var commentLabel = commentCount + (commentCount === 1 ? " comment" : " comments");
+								$item.find(".post-comments").text(commentLabel);
+								$item.find(".post-like-count").text(p.likes_count || 0);
+								$item.find(".post-dislike-count").text(p.dislikes_count || 0);
+								if (p.user_reaction === 1) {
+									$item.find(".post-like").addClass("active");
+								} else if (p.user_reaction === -1) {
+									$item.find(".post-dislike").addClass("active");
+								}
+								if (p.urls && p.urls.relative) {
+									$item.data("react-url", p.urls.relative + "react/");
+								}
 								$list.append($item);
 							});
 
@@ -316,14 +408,78 @@
 									if (category) {
 										link += "&categories=" + encodeURIComponent(category);
 									}
-									if (author) {
-										link += "&author=" + encodeURIComponent(author);
+									if (ordering) {
+										link += "&ordering=" + encodeURIComponent(ordering);
 									}
 									$pagination.append(
 										'<li class="page-item' + active + '"><a class="page-link" href="' + link + '">' + i + '</a></li>'
 									);
 								}
 							}
+						}).fail(function () {
+							window.location.href = "{% url 'website:blog-home' %}";
+						});
+
+						var reactMeta = document.getElementById("post-react-meta");
+						var isAuthenticated = reactMeta && reactMeta.dataset.authenticated === "true";
+						var isVerified = reactMeta && reactMeta.dataset.verified === "true";
+						var canReact = isAuthenticated && isVerified;
+
+						function showReactionMessage($item, message) {
+							var $msg = $item.find(".post-reaction-message");
+							if (!message) {
+								$msg.hide();
+								$msg.text("");
+								return;
+							}
+							$msg.text(message);
+							$msg.show();
+						}
+
+						$("#posts-list").on("click", ".post-reaction", function (event) {
+							event.preventDefault();
+							var $item = $(this).closest(".single-post");
+							showReactionMessage($item, "");
+							if (!isAuthenticated) {
+								showReactionMessage($item, "Login to react.");
+								return;
+							}
+							if (!canReact) {
+								showReactionMessage($item, "Verify your email to react.");
+								return;
+							}
+							var reactUrl = $item.data("react-url");
+							if (!reactUrl) {
+								showReactionMessage($item, "Reaction not available.");
+								return;
+							}
+							var value = $(this).data("value");
+							$.ajax({
+								url: reactUrl,
+								method: "POST",
+								headers: { "X-CSRFToken": getCookie("csrftoken") },
+								data: { value: value },
+								success: function (response) {
+									$item.find(".post-like-count").text(response.likes_count || 0);
+									$item.find(".post-dislike-count").text(response.dislikes_count || 0);
+									$item.find(".post-like, .post-dislike").removeClass("active");
+									if (response.user_reaction === 1) {
+										$item.find(".post-like").addClass("active");
+									} else if (response.user_reaction === -1) {
+										$item.find(".post-dislike").addClass("active");
+									}
+								},
+								error: function (xhr) {
+									var message = "Failed to react.";
+									if (xhr.status === 403) {
+										message = "Verify your email to react.";
+									}
+									if (xhr.responseJSON && xhr.responseJSON.detail) {
+										message = xhr.responseJSON.detail;
+									}
+									showReactionMessage($item, message);
+								}
+							});
 						});
 
 						var categoriesCache = [];
@@ -486,7 +642,8 @@
 						{% if not request.user.is_verified %}
 						<p class="comment-verify-note" style="text-align:left;">Verify your email to create posts.</p>
 						{% endif %}
-						<button type="button" id="create-post-button" class="primary-btn text-uppercase">Create Post</button>
+						<button type="button" id="create-post-button" class="primary-btn text-uppercase">Create
+							Post</button>
 						<div id="create-post-modal" class="post-modal">
 							<div class="post-modal-card">
 								<h5>Create Post</h5>
@@ -494,7 +651,8 @@
 									{% csrf_token %}
 									<input type="text" name="title" placeholder="Title" required>
 									<textarea name="content" placeholder="Content" rows="4" required></textarea>
-									<textarea name="extra_content" placeholder="Extra content (optional)" rows="3"></textarea>
+									<textarea name="extra_content" placeholder="Extra content (optional)"
+										rows="3"></textarea>
 									{% if request.user.is_staff %}
 									<div class="post-modal-row">
 										<label><input type="checkbox" name="status" checked> Published</label>
@@ -516,7 +674,8 @@
 										<label>Image 3</label>
 										<input type="file" name="image_3" accept="image/*">
 									</div>
-									<div id="create-post-message" class="post-modal-message" style="display:none;"></div>
+									<div id="create-post-message" class="post-modal-message" style="display:none;">
+									</div>
 									<div class="post-modal-actions">
 										<button type="button" id="create-post-cancel" class="primary-btn text-uppercase"
 											style="background:#ccc;color:#222;">Cancel</button>
@@ -529,11 +688,24 @@
 						<a href="{% url 'login' %}">Login to create a post!</a>
 						{% endif %}
 					</div>
+					<div class="single-sidebar-widget filter-widget">
+						<h4 class="mb-10">Sort posts</h4>
+						<form id="post-filter-form" action="{% url 'website:blog-home' %}" method="get">
+							<select name="ordering" id="filter-ordering">
+								<option value="">Sort by</option>
+								<option value="-published_date">Newest</option>
+								<option value="published_date">Oldest</option>
+								<option value="-counted_view">Most viewed</option>
+								<option value="counted_view">Least viewed</option>
+							</select>
+							<button type="submit" class="primary-btn text-uppercase" style="width:100%;">Apply</button>
+						</form>
+					</div>
 					{% include 'blogApi/blog-search.html' %}
 					{% include 'blogApi/blog-writer.html' %}
 
 					{% include 'blogApi/blog-ads.html' %}
-					
+
 					{% include 'blogApi/blog-tags.html' %}
 				</div>
 			</div>

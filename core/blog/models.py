@@ -78,6 +78,29 @@ class CommentReport(models.Model):
         return f"{self.comment_id} - {label}"
 
 
+class PostReaction(models.Model):
+    VALUE_LIKE = 1
+    VALUE_DISLIKE = -1
+    VALUE_CHOICES = [
+        (VALUE_LIKE, "Like"),
+        (VALUE_DISLIKE, "Dislike"),
+    ]
+
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="reactions")
+    user = models.ForeignKey("accounts.Profile", on_delete=models.CASCADE, related_name="post_reactions")
+    value = models.SmallIntegerField(choices=VALUE_CHOICES)
+    created_date = models.DateTimeField(auto_now_add=True)
+    updated_date = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(fields=["post", "user"], name="unique_post_reaction"),
+        ]
+
+    def __str__(self):
+        return f"{self.post_id} - {self.user_id} ({self.value})"
+
+
 class PostReport(models.Model):
     STATUS_PENDING = "pending"
     STATUS_APPROVED = "approved"

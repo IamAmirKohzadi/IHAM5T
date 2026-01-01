@@ -12,7 +12,7 @@ from django.utils import timezone
 from .serializers import PostSerializer,CategorySerializer,CommentSerializer,CommentReportSerializer,PostReportSerializer
 from .permissions import IsOwnerOrReadOnly, IsCommentOwnerOrReadOnly, IsVerifiedOrReadOnly
 from .paginations import LargeResultsSetPagination
-from blog.models import Post,Category,Comment,CommentReport,PostReport
+from blog.models import Post,Category,Comment,CommentReport,PostReport,PostReaction
 from django.db.models import Q
 from accounts.models import Profile
 
@@ -119,12 +119,22 @@ class PostModelViewSet(viewsets.ModelViewSet):
     serializer_class = PostSerializer
     pagination_class = LargeResultsSetPagination
     filter_backends = [DjangoFilterBackend,SearchFilter,OrderingFilter]
-    filterset_fields = ['categories','author','status']
+    filterset_fields = {
+        'categories': ['exact'],
+        'author': ['exact'],
+        'status': ['exact'],
+        'published_date': ['date', 'gte', 'lte'],
+        'counted_view': ['gte', 'lte'],
+    }
     search_fields = ['title','content']
-    ordering_fields = ['published_date']
+    ordering_fields = ['published_date', 'counted_view', 'created_date']
 
     def get_queryset(self):
-        qs = Post.objects.all()
+        qs = Post.objects.all().annotate(
+            likes_count=Count('reactions', filter=Q(reactions__value=1), distinct=True),
+            dislikes_count=Count('reactions', filter=Q(reactions__value=-1), distinct=True),
+            comments_count=Count('comments', filter=Q(comments__is_approved=True), distinct=True),
+        )
         user = getattr(self.request, "user", None)
         if not user or not user.is_authenticated:
             return qs.filter(status=True)
@@ -175,6 +185,45 @@ class PostModelViewSet(viewsets.ModelViewSet):
         instance.refresh_from_db(fields=["counted_view"])
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsVerifiedOrReadOnly])
+    def react(self, request, *args, **kwargs):
+        post = self.get_object()
+        try:
+            value = int(request.data.get("value"))
+        except (TypeError, ValueError):
+            return Response({"detail": "Invalid reaction value."}, status=400)
+        if value not in (1, -1):
+            return Response({"detail": "Invalid reaction value."}, status=400)
+
+        profile = Profile.objects.filter(user=request.user).first()
+        if not profile:
+            return Response({"detail": "Profile not found."}, status=400)
+
+        reaction, created = PostReaction.objects.get_or_create(
+            post=post, user=profile, defaults={"value": value}
+        )
+        if not created:
+            if reaction.value == value:
+                reaction.delete()
+                current = 0
+            else:
+                reaction.value = value
+                reaction.save(update_fields=["value", "updated_date"])
+                current = value
+        else:
+            current = value
+
+        counts = PostReaction.objects.filter(post=post).aggregate(
+            likes=Count('id', filter=Q(value=1)),
+            dislikes=Count('id', filter=Q(value=-1)),
+        )
+
+        return Response({
+            "likes_count": counts.get("likes", 0),
+            "dislikes_count": counts.get("dislikes", 0),
+            "user_reaction": current,
+        })
 
     @action(detail=False, methods=['get'])#we use this def to choose the blogger of the month based on total views in the last 30 days, with a minimum post count (e.g., at least 2 posts) to avoid one‑hit wins!
     def top_author(self, request):

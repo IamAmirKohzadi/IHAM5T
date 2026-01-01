@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.db.models import Q
 from django.db.models.functions import Coalesce
-from blog.models import Post,Category,Comment,CommentReport,PostReport
+from blog.models import Post,Category,Comment,CommentReport,PostReport,PostReaction
 from django.urls import reverse
 from accounts.models import Profile
 from django.utils.text import Truncator
@@ -35,6 +35,10 @@ class PostSerializer(serializers.ModelSerializer):
     author_id = serializers.IntegerField(read_only=True)
     author_social_links = serializers.SerializerMethodField()
     can_edit = serializers.SerializerMethodField()
+    likes_count = serializers.IntegerField(read_only=True)
+    dislikes_count = serializers.IntegerField(read_only=True)
+    comments_count = serializers.IntegerField(read_only=True)
+    user_reaction = serializers.SerializerMethodField()
     previous_post = serializers.SerializerMethodField()
     next_post = serializers.SerializerMethodField()
     categories = serializers.SlugRelatedField(many=True, slug_field='name', queryset=Category.objects.all())
@@ -43,7 +47,7 @@ class PostSerializer(serializers.ModelSerializer):
     status = serializers.BooleanField(required=False)
     class Meta:
         model = Post
-        fields = ['id','author_id','author_name','author_social_links','can_edit','image','image_2','image_3','title','excerpt','content','extra_content','categories','categories_info','status','urls','created_date','published_date','counted_view','previous_post','next_post']
+        fields = ['id','author_id','author_name','author_social_links','can_edit','likes_count','dislikes_count','comments_count','user_reaction','image','image_2','image_3','title','excerpt','content','extra_content','categories','categories_info','status','urls','created_date','published_date','counted_view','previous_post','next_post']
         read_only_fields = ['author_name','can_edit']
 
     def get_urls(self,obj):
@@ -65,6 +69,16 @@ class PostSerializer(serializers.ModelSerializer):
             'github': obj.author.github_url,
             'behance': obj.author.behance_url,
         }
+
+    def get_user_reaction(self, obj):
+        request = self.context.get('request')
+        if not request or not request.user or not request.user.is_authenticated:
+            return 0
+        profile = Profile.objects.filter(user_id=request.user.id).first()
+        if not profile:
+            return 0
+        reaction = PostReaction.objects.filter(post=obj, user=profile).first()
+        return reaction.value if reaction else 0
 
     def get_can_edit(self, obj):
         request = self.context.get('request')

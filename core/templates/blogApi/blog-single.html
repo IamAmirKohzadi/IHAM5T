@@ -72,6 +72,33 @@
 		color: #d9534f;
 	}
 
+	.post-reactions {
+		display: inline-flex;
+		gap: 10px;
+		align-items: center;
+	}
+
+	.post-reaction {
+		font-size: 14px;
+		color: #777;
+		text-decoration: none;
+	}
+
+	.post-reaction i {
+		font-size: 16px;
+	}
+
+	.post-reaction.active {
+		color: #0b5ed7;
+		font-weight: 600;
+	}
+
+	.post-reaction-message {
+		font-size: 12px;
+		color: #d9534f;
+		margin-top: 6px;
+	}
+
 	.comment-edit-text {
 		width: 100%;
 		min-height: 90px;
@@ -102,6 +129,21 @@
 		border-radius: 6px;
 		padding: 8px;
 		margin-bottom: 8px;
+	}
+
+	.comment-rules {
+		background: #f8f9fb;
+		border: 1px solid #eee;
+		border-radius: 8px;
+		padding: 12px;
+		margin-bottom: 14px;
+		font-size: 12px;
+		color: #666;
+	}
+
+	.comment-rules ul {
+		margin: 6px 0 0;
+		padding-left: 16px;
 	}
 
 	.report-modal {
@@ -315,7 +357,10 @@
 			</div>
 		</div>
 	</div>
-	<div id="post-meta" data-can-comment="{% if request.user.is_authenticated %}true{% else %}false{% endif %}"
+	<div id="post-meta"
+		data-can-comment="{% if request.user.is_authenticated %}true{% else %}false{% endif %}"
+		data-can-react="{% if request.user.is_authenticated and request.user.is_verified %}true{% else %}false{% endif %}"
+		data-authenticated="{% if request.user.is_authenticated %}true{% else %}false{% endif %}"
 		style="display:none;"></div>
 </section>
 <!-- End banner Area -->
@@ -343,6 +388,15 @@
 									class="lnr lnr-eye"></span></p>
 							<p class="comments col-lg-12 col-md-12 col-6"><span id="post-comments-inline">0 comments</span> <span
 									class="lnr lnr-bubble"></span></p>
+							<p class="reactions col-lg-12 col-md-12 col-6">
+								<span class="post-reactions">
+									<a href="#" class="post-reaction post-like" data-value="1"><i class="fa fa-thumbs-up"></i>
+										<span id="post-like-count">0</span></a>
+									<a href="#" class="post-reaction post-dislike" data-value="-1"><i class="fa fa-thumbs-down"></i>
+										<span id="post-dislike-count">0</span></a>
+								</span>
+								<div id="post-reaction-message" class="post-reaction-message" style="display:none;"></div>
+							</p>
 							<p id="post-report-wrap" class="report col-lg-12 col-md-12 col-6">
 								<a href="#" id="post-report-link" class="post-report-link">Report post</a>
 								<span class="lnr lnr-flag"></span>
@@ -418,6 +472,14 @@
 							<span id="post-comments">0 comments</span>
 							<span class="lnr lnr-bubble"></span>
 						</div>
+					</div>
+					<div class="comment-rules">
+						<strong>Comment rules</strong>
+						<ul>
+							<li>Be respectful and keep it civil.</li>
+							<li>No spam, ads, or self-promotion.</li>
+							<li>Stay on topic and add value.</li>
+						</ul>
 					</div>
 					<div id="comments-list"></div>
 					<div id="comments-empty" style="display:none;">
@@ -555,7 +617,10 @@
 	}
 
 	function buildCategories(categoriesInfo) {
-		return categoriesInfo.map(function (cat, index) {
+		if (!categoriesInfo.length) {
+			return '<li><a href="#">Uncategorized</a></li>';
+		}
+		return categoriesInfo.map(function (cat) {
 			var name = cat.name || "";
 			var link = "{% url 'website:blog-home' %}";
 			if (cat.id) {
@@ -563,8 +628,7 @@
 			} else {
 				link = "#";
 			}
-			var sep = index === categoriesInfo.length - 1 ? "" : ", ";
-			return '<a href="' + link + '">' + name + '</a>' + sep;
+			return '<li><a href="' + link + '">' + name + '</a></li>';
 		}).join("");
 	}
 
@@ -674,6 +738,8 @@
 		var csrfToken = getCookie("csrftoken");
 		var metaEl = document.getElementById("post-meta");
 		var canComment = metaEl && metaEl.dataset.canComment === "true";
+		var canReact = metaEl && metaEl.dataset.canReact === "true";
+		var isAuthenticated = metaEl && metaEl.dataset.authenticated === "true";
 		var categoriesCache = [];
 		var currentPost = null;
 
@@ -795,6 +861,14 @@
 		$("#post-content").html(data.content || "");
 		$("#post-date").text(formatDateTime(data.created_date));
 		$("#post-views").text(data.counted_view || 0);
+		$("#post-like-count").text(data.likes_count || 0);
+		$("#post-dislike-count").text(data.dislikes_count || 0);
+		$(".post-reaction").removeClass("active");
+		if (data.user_reaction === 1) {
+			$(".post-like").addClass("active");
+		} else if (data.user_reaction === -1) {
+			$(".post-dislike").addClass("active");
+		}
 
 		var imageUrl = data.image ? data.image : defaultImage;
 		$("#post-image").attr("src", imageUrl);
@@ -974,6 +1048,57 @@
 				return;
 			}
 			openReportModal("post", postId);
+		});
+
+		function showReactionMessage(text) {
+			var $msg = $("#post-reaction-message");
+			if (!text) {
+				$msg.hide();
+				$msg.text("");
+				return;
+			}
+			$msg.text(text);
+			$msg.show();
+		}
+
+		$(".post-reactions").on("click", ".post-reaction", function (event) {
+			event.preventDefault();
+			showReactionMessage("");
+			if (!isAuthenticated) {
+				showReactionMessage("Login to react.");
+				return;
+			}
+			if (!canReact) {
+				showReactionMessage("Verify your email to react.");
+				return;
+			}
+			var value = $(this).data("value");
+			$.ajax({
+				url: apiUrl + "react/",
+				method: "POST",
+				headers: { "X-CSRFToken": csrfToken },
+				data: { value: value },
+				success: function (response) {
+					$("#post-like-count").text(response.likes_count || 0);
+					$("#post-dislike-count").text(response.dislikes_count || 0);
+					$(".post-reaction").removeClass("active");
+					if (response.user_reaction === 1) {
+						$(".post-like").addClass("active");
+					} else if (response.user_reaction === -1) {
+						$(".post-dislike").addClass("active");
+					}
+				},
+				error: function (xhr) {
+					var message = "Failed to react.";
+					if (xhr.status === 403) {
+						message = "Verify your email to react.";
+					}
+					if (xhr.responseJSON && xhr.responseJSON.detail) {
+						message = xhr.responseJSON.detail;
+					}
+					showReactionMessage(message);
+				}
+			});
 		});
 
 		$("#post-edit-btn").on("click", function () {
