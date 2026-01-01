@@ -12,6 +12,7 @@ class UserManager(BaseUserManager):
     def create_user(self,email,password,**extra_fields):
         if not email:
             raise ValueError(_('Email must be set!'))
+        extra_fields.setdefault('is_active', True)
         email = self.normalize_email(email)
         user = self.model(email=email,**extra_fields)
         user.set_password(password)
@@ -56,4 +57,3 @@ class User(AbstractBaseUser,PermissionsMixin):
     objects = UserManager()
     def __str__(self):
         return self.email
-

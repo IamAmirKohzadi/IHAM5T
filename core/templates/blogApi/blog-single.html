@@ -63,6 +63,15 @@
 		color: #b94a48;
 	}
 
+	.post-report-link {
+		font-size: 12px;
+		color: #777;
+	}
+
+	.post-report-link:hover {
+		color: #d9534f;
+	}
+
 	.comment-edit-text {
 		width: 100%;
 		min-height: 90px;
@@ -77,6 +86,22 @@
 		margin-top: 6px;
 		font-size: 12px;
 		color: #d9534f;
+	}
+
+	.comment-form-message {
+		font-size: 12px;
+		color: #d9534f;
+		margin-top: 8px;
+	}
+
+	.comment-verify-note {
+		font-size: 12px;
+		color: #856404;
+		background: #fff3cd;
+		border: 1px solid #ffeeba;
+		border-radius: 6px;
+		padding: 8px;
+		margin-bottom: 8px;
 	}
 
 	.report-modal {
@@ -318,6 +343,10 @@
 									class="lnr lnr-eye"></span></p>
 							<p class="comments col-lg-12 col-md-12 col-6"><span id="post-comments-inline">0 comments</span> <span
 									class="lnr lnr-bubble"></span></p>
+							<p id="post-report-wrap" class="report col-lg-12 col-md-12 col-6">
+								<a href="#" id="post-report-link" class="post-report-link">Report post</a>
+								<span class="lnr lnr-flag"></span>
+							</p>
 							<ul class="social-links col-lg-12 col-md-12 col-6">
 								<li><a id="post-author-facebook" href="#"><i class="fa fa-facebook"></i></a></li>
 								<li><a id="post-author-twitter" href="#"><i class="fa fa-twitter"></i></a></li>
@@ -396,7 +425,7 @@
 					</div>
 					<div id="report-modal" class="report-modal">
 						<div class="report-card">
-							<h5>Report Comment</h5>
+							<h5 id="report-title">Report Comment</h5>
 							<textarea id="report-reason" placeholder="Tell us what is wrong..." required></textarea>
 							<div id="report-message" class="report-message" style="display:none;"></div>
 							<div class="report-actions">
@@ -409,12 +438,16 @@
 
 					{% if request.user.is_authenticated %}
 					<div class="comment-form">
+						{% if not request.user.is_verified %}
+						<div class="comment-verify-note">Verify your email to comment.</div>
+						{% endif %}
 						<form id="comment-form">
 							<input type="hidden" id="comment-parent-id" value="">
 							<div class="form-group">
 								<textarea id="comment-message" class="form-control mb-10" rows="3"
 									placeholder="Write your comment" required></textarea>
 							</div>
+							<div id="comment-form-message" class="comment-form-message" style="display:none;"></div>
 							<button type="submit" class="primary-btn text-uppercase">Post Comment</button>
 							<a href="#" id="comment-cancel-reply" style="margin-left:10px; display:none;">Cancel
 								Reply</a>
@@ -562,7 +595,7 @@
 			if (canComment && node.depth < 2) {
 				replyLink = '<a href="#" class="comment-reply">Reply</a>';
 			}
-			if (canComment) {
+			if (canComment && !node.is_owner) {
 				reportLink = '<a href="#" class="comment-report">Report</a>';
 			}
 			if (node.is_owner) {
@@ -635,7 +668,8 @@
 		var apiUrl = "{% url 'blog:api-v1:post-list' %}" + postId + "/";
 
 		var commentsUrl = "{% url 'blog:api-v1:comment-list' %}";
-		var reportUrl = "{% url 'blog:api-v1:comment-report-list' %}";
+		var commentReportUrl = "{% url 'blog:api-v1:comment-report-list' %}";
+		var postReportUrl = "{% url 'blog:api-v1:post-report-list' %}";
 		var categoryUrl = "{% url 'blog:api-v1:category-list' %}";
 		var csrfToken = getCookie("csrftoken");
 		var metaEl = document.getElementById("post-meta");
@@ -700,6 +734,17 @@
 			}
 			$msg.text(text);
 			$msg.toggleClass("success", Boolean(isSuccess));
+			$msg.show();
+		}
+
+		function showCommentFormMessage(text) {
+			var $msg = $("#comment-form-message");
+			if (!text) {
+				$msg.hide();
+				$msg.text("");
+				return;
+			}
+			$msg.text(text);
 			$msg.show();
 		}
 
@@ -803,6 +848,7 @@
 
 		if (data.can_edit) {
 			$("#post-actions").show();
+			$("#post-report-wrap").hide();
 		}
 	}).fail(function () {
 		window.location.href = "{% url 'website:blog-home' %}";
@@ -850,24 +896,28 @@
 		});
 
 		var reportModal = document.getElementById("report-modal");
+		var reportTitle = document.getElementById("report-title");
 		var reportReason = document.getElementById("report-reason");
 		var reportSubmit = document.getElementById("report-submit");
 		var reportCancel = document.getElementById("report-cancel");
 		var reportMessage = document.getElementById("report-message");
-		var reportCommentId = null;
+		var reportTarget = { type: null, id: null };
 
-		function openReportModal(commentId) {
-			reportCommentId = commentId;
+		function openReportModal(type, targetId) {
+			reportTarget.type = type;
+			reportTarget.id = targetId;
 			reportReason.value = "";
 			reportMessage.textContent = "";
 			reportMessage.style.display = "none";
 			reportMessage.classList.remove("success");
+			reportTitle.textContent = type === "post" ? "Report Post" : "Report Comment";
 			reportModal.classList.add("is-open");
 		}
 
 		function closeReportModal() {
 			reportModal.classList.remove("is-open");
-			reportCommentId = null;
+			reportTarget.type = null;
+			reportTarget.id = null;
 		}
 
 		reportCancel.addEventListener("click", function () {
@@ -881,11 +931,19 @@
 				reportMessage.style.display = "block";
 				return;
 			}
+			if (!reportTarget.id) {
+				reportMessage.textContent = "Nothing selected to report.";
+				reportMessage.style.display = "block";
+				return;
+			}
+			var isPost = reportTarget.type === "post";
+			var targetUrl = isPost ? postReportUrl : commentReportUrl;
+			var payload = isPost ? { post: reportTarget.id, reason: reason } : { comment: reportTarget.id, reason: reason };
 			$.ajax({
-				url: reportUrl,
+				url: targetUrl,
 				method: "POST",
 				headers: { "X-CSRFToken": csrfToken },
-				data: { comment: reportCommentId, reason: reason },
+				data: payload,
 				success: function () {
 					reportMessage.textContent = "Report submitted. Thanks.";
 					reportMessage.classList.add("success");
@@ -893,7 +951,7 @@
 					setTimeout(closeReportModal, 800);
 				},
 				error: function () {
-					reportMessage.textContent = "Failed to report comment.";
+					reportMessage.textContent = isPost ? "Failed to report post." : "Failed to report comment.";
 					reportMessage.style.display = "block";
 				}
 			});
@@ -906,7 +964,16 @@
 				return;
 			}
 			var commentId = $(this).closest(".comment-item").data("id");
-			openReportModal(commentId);
+			openReportModal("comment", commentId);
+		});
+
+		$("#post-report-link").on("click", function (event) {
+			event.preventDefault();
+			if (!canComment) {
+				window.location.href = "{% url 'login' %}";
+				return;
+			}
+			openReportModal("post", postId);
 		});
 
 		$("#post-edit-btn").on("click", function () {
@@ -986,18 +1053,25 @@
 				},
 				error: function (xhr) {
 					var message = "Failed to update post.";
+					if (xhr.status === 403) {
+						message = "Verify your account before editing posts.";
+					}
 					if (xhr.responseJSON) {
-						var parts = [];
-						Object.keys(xhr.responseJSON).forEach(function (key) {
-							var value = xhr.responseJSON[key];
-							if (Array.isArray(value)) {
-								parts.push(key + ": " + value.join(", "));
-							} else if (value) {
-								parts.push(key + ": " + value);
+						if (xhr.responseJSON.detail) {
+							message = xhr.responseJSON.detail;
+						} else {
+							var parts = [];
+							Object.keys(xhr.responseJSON).forEach(function (key) {
+								var value = xhr.responseJSON[key];
+								if (Array.isArray(value)) {
+									parts.push(key + ": " + value.join(", "));
+								} else if (value) {
+									parts.push(key + ": " + value);
+								}
+							});
+							if (parts.length) {
+								message = parts.join(" | ");
 							}
-						});
-						if (parts.length) {
-							message = parts.join(" | ");
 						}
 					}
 					showEditMessage(message);
@@ -1112,8 +1186,10 @@
 
 		$("#comment-form").on("submit", function (event) {
 			event.preventDefault();
+			showCommentFormMessage("");
 			var message = $("#comment-message").val().trim();
 			if (!message) {
+				showCommentFormMessage("Comment cannot be empty.");
 				return;
 			}
 			var parentId = $("#comment-parent-id").val();
@@ -1130,7 +1206,18 @@
 					$("#comment-message").val("");
 					$("#comment-parent-id").val("");
 					$("#comment-cancel-reply").hide();
+					showCommentFormMessage("");
 					loadComments();
+				},
+				error: function (xhr) {
+					var messageText = "Failed to post comment.";
+					if (xhr.status === 403) {
+						messageText = "Verify your account before commenting.";
+					}
+					if (xhr.responseJSON && xhr.responseJSON.detail) {
+						messageText = xhr.responseJSON.detail;
+					}
+					showCommentFormMessage(messageText);
 				}
 			});
 		});

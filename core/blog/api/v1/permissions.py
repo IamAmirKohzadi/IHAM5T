@@ -17,3 +17,13 @@ class IsCommentOwnerOrReadOnly(permissions.BasePermission):
         if not obj.author:
             return False
         return obj.author.user == request.user
+
+
+class IsVerifiedOrReadOnly(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        user = getattr(request, "user", None)
+        if not user or not user.is_authenticated:
+            return False
+        return getattr(user, "is_verified", False)

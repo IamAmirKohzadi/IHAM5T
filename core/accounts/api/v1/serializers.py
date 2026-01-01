@@ -100,7 +100,8 @@ class ProfileSerializer(serializers.ModelSerializer):
     email = serializers.CharField(source='user.email',read_only=True)
     class Meta:
         model = Profile
-        fields = ['first_name','last_name','image','email','description']
+        fields = ['id','first_name','last_name','image','email','description','facebook_url','twitter_url','github_url','behance_url','created_date','updated_date']
+        read_only_fields = ['id','email','created_date','updated_date']
 
 
 class ActivationResendSerializer(serializers.Serializer):

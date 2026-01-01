@@ -59,11 +59,11 @@ class Comment(models.Model):
 
 class CommentReport(models.Model):
     STATUS_PENDING = "pending"
-    STATUS_REVIEWED = "reviewed"
+    STATUS_APPROVED = "approved"
     STATUS_DISMISSED = "dismissed"
     STATUS_CHOICES = [
         (STATUS_PENDING, "Pending"),
-        (STATUS_REVIEWED, "Reviewed"),
+        (STATUS_APPROVED, "Approved"),
         (STATUS_DISMISSED, "Dismissed"),
     ]
 
@@ -76,3 +76,24 @@ class CommentReport(models.Model):
     def __str__(self):
         label = self.reporter.user.email if self.reporter else "anonymous"
         return f"{self.comment_id} - {label}"
+
+
+class PostReport(models.Model):
+    STATUS_PENDING = "pending"
+    STATUS_APPROVED = "approved"
+    STATUS_DISMISSED = "dismissed"
+    STATUS_CHOICES = [
+        (STATUS_PENDING, "Pending"),
+        (STATUS_APPROVED, "Approved"),
+        (STATUS_DISMISSED, "Dismissed"),
+    ]
+
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="reports")
+    reporter = models.ForeignKey("accounts.Profile", on_delete=models.SET_NULL, null=True, blank=True)
+    reason = models.TextField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    created_date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        label = self.reporter.user.email if self.reporter else "anonymous"
+        return f"{self.post_id} - {label}"

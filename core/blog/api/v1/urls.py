@@ -12,6 +12,7 @@ router.register('post',views.PostModelViewSet,basename='post') #post-list
 router.register('category',views.CategoryModelViewSet,basename='category') #category-list
 router.register('comment',views.CommentModelViewSet,basename='comment') #comment-list
 router.register('comment-report',views.CommentReportViewSet,basename='comment-report') #comment-report-list
+router.register('post-report',views.PostReportViewSet,basename='post-report') #post-report-list
 
 urlpatterns = router.urls
 

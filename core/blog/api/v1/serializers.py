@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.db.models import Q
 from django.db.models.functions import Coalesce
-from blog.models import Post,Category,Comment,CommentReport
+from blog.models import Post,Category,Comment,CommentReport,PostReport
 from django.urls import reverse
 from accounts.models import Profile
 from django.utils.text import Truncator
@@ -40,6 +40,7 @@ class PostSerializer(serializers.ModelSerializer):
     categories = serializers.SlugRelatedField(many=True, slug_field='name', queryset=Category.objects.all())
     categories_info = CategorySerializer(source='categories', many=True, read_only=True)
     excerpt = serializers.SerializerMethodField()
+    status = serializers.BooleanField(required=False)
     class Meta:
         model = Post
         fields = ['id','author_id','author_name','author_social_links','can_edit','image','image_2','image_3','title','excerpt','content','extra_content','categories','categories_info','status','urls','created_date','published_date','counted_view','previous_post','next_post']
@@ -166,6 +167,10 @@ class CommentSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError("Parent comment must belong to the same post.")
             if parent.depth >= 2:
                 raise serializers.ValidationError("Max comment depth reached.")
+        if not self.instance and post and not post.status:
+            request = self.context.get("request")
+            if not request or not request.user or not request.user.is_staff:
+                raise serializers.ValidationError("Comments are disabled until the post is approved.")
         return attrs
 
     def validate_message(self, value):
@@ -187,12 +192,18 @@ class CommentSerializer(serializers.ModelSerializer):
 class CommentReportSerializer(serializers.ModelSerializer):
     reporter_id = serializers.IntegerField(read_only=True)
     reporter_name = serializers.SerializerMethodField()
+    comment_message = serializers.SerializerMethodField()
+    post_id = serializers.SerializerMethodField()
+    post_title = serializers.SerializerMethodField()
 
     class Meta:
         model = CommentReport
         fields = [
             "id",
             "comment",
+            "comment_message",
+            "post_id",
+            "post_title",
             "reason",
             "status",
             "reporter_id",
@@ -207,8 +218,68 @@ class CommentReportSerializer(serializers.ModelSerializer):
             return full_name or obj.reporter.user.email
         return "anonymous"
 
+    def get_comment_message(self, obj):
+        if not obj.comment:
+            return ""
+        return Truncator(obj.comment.message).chars(120, truncate="...")
+
+    def get_post_id(self, obj):
+        if not obj.comment or not obj.comment.post:
+            return None
+        return obj.comment.post_id
+
+    def get_post_title(self, obj):
+        if not obj.comment or not obj.comment.post:
+            return ""
+        return obj.comment.post.title
+
     def create(self, validated_data):
         request = self.context.get("request")
         if request and request.user and request.user.is_authenticated:
             validated_data["reporter"] = Profile.objects.get(user__id=request.user.id)
+            if validated_data["comment"].author and validated_data["comment"].author.user_id == request.user.id:
+                raise serializers.ValidationError({"detail": "You cannot report your own comment."})
+            if CommentReport.objects.filter(comment=validated_data["comment"], reporter=validated_data["reporter"]).exists():
+                raise serializers.ValidationError({"detail": "You have already reported this comment."})
+        return super().create(validated_data)
+
+
+class PostReportSerializer(serializers.ModelSerializer):
+    reporter_id = serializers.IntegerField(read_only=True)
+    reporter_name = serializers.SerializerMethodField()
+    post_title = serializers.SerializerMethodField()
+
+    class Meta:
+        model = PostReport
+        fields = [
+            "id",
+            "post",
+            "post_title",
+            "reason",
+            "status",
+            "reporter_id",
+            "reporter_name",
+            "created_date",
+        ]
+        read_only_fields = ["status", "reporter_id", "reporter_name", "created_date"]
+
+    def get_reporter_name(self, obj):
+        if obj.reporter:
+            full_name = f"{obj.reporter.first_name} {obj.reporter.last_name}".strip()
+            return full_name or obj.reporter.user.email
+        return "anonymous"
+
+    def get_post_title(self, obj):
+        if not obj.post:
+            return ""
+        return obj.post.title
+
+    def create(self, validated_data):
+        request = self.context.get("request")
+        if request and request.user and request.user.is_authenticated:
+            validated_data["reporter"] = Profile.objects.get(user__id=request.user.id)
+            if validated_data["post"].author and validated_data["post"].author.user_id == request.user.id:
+                raise serializers.ValidationError({"detail": "You cannot report your own post."})
+            if PostReport.objects.filter(post=validated_data["post"], reporter=validated_data["reporter"]).exists():
+                raise serializers.ValidationError({"detail": "You have already reported this post."})
         return super().create(validated_data)

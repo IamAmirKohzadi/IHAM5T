@@ -9,10 +9,11 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 from django.db.models import Count,F,Sum
 from django.utils import timezone
-from .serializers import PostSerializer,CategorySerializer,CommentSerializer,CommentReportSerializer
-from .permissions import IsOwnerOrReadOnly, IsCommentOwnerOrReadOnly
+from .serializers import PostSerializer,CategorySerializer,CommentSerializer,CommentReportSerializer,PostReportSerializer
+from .permissions import IsOwnerOrReadOnly, IsCommentOwnerOrReadOnly, IsVerifiedOrReadOnly
 from .paginations import LargeResultsSetPagination
-from blog.models import Post,Category,Comment,CommentReport
+from blog.models import Post,Category,Comment,CommentReport,PostReport
+from django.db.models import Q
 from accounts.models import Profile
 
 #function based api for listing all the posts with permission classes and decorators!#
@@ -114,7 +115,7 @@ from accounts.models import Profile
 
 #a class-based view that provides a set of default actions for performing CRUD operations on a model!#
 class PostModelViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticatedOrReadOnly,IsOwnerOrReadOnly]
+    permission_classes = [IsAuthenticatedOrReadOnly, IsVerifiedOrReadOnly, IsOwnerOrReadOnly]
     serializer_class = PostSerializer
     pagination_class = LargeResultsSetPagination
     filter_backends = [DjangoFilterBackend,SearchFilter,OrderingFilter]
@@ -125,16 +126,35 @@ class PostModelViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         qs = Post.objects.all()
         user = getattr(self.request, "user", None)
-        if not user or not user.is_authenticated or not user.is_staff:
-            qs = qs.filter(status=True)
-        return qs
+        if not user or not user.is_authenticated:
+            return qs.filter(status=True)
+
+        if user.is_staff:
+            return qs
+
+        if getattr(self, "action", None) in ("destroy", "update", "partial_update"):
+            return qs.filter(Q(status=True) | Q(author__user=user))
+
+        author_param = self.request.query_params.get("author")
+        include_unapproved = self.request.query_params.get("include_unapproved")
+        if author_param and include_unapproved in ("1", "true", "True"):
+            try:
+                author_id = int(author_param)
+            except (TypeError, ValueError):
+                author_id = None
+            if author_id:
+                profile_id = Profile.objects.filter(user=user).values_list("id", flat=True).first()
+                if profile_id and profile_id == author_id:
+                    return qs
+
+        return qs.filter(status=True)
 
     def perform_create(self, serializer):
         user = getattr(self.request, "user", None)
         if not user or not user.is_staff:
-            serializer.save(status=True)
+            serializer.save(status=False)
             return
-        serializer.save()
+        serializer.save(status=True)
 
     def perform_update(self, serializer):
         user = getattr(self.request, "user", None)
@@ -220,7 +240,7 @@ class CategoryModelViewSet(viewsets.ModelViewSet):
 
 
 class CommentModelViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticatedOrReadOnly, IsCommentOwnerOrReadOnly]
+    permission_classes = [IsAuthenticatedOrReadOnly, IsVerifiedOrReadOnly, IsCommentOwnerOrReadOnly]
     serializer_class = CommentSerializer
     queryset = Comment.objects.all()
     filter_backends = [DjangoFilterBackend, OrderingFilter]
@@ -232,7 +252,33 @@ class CommentModelViewSet(viewsets.ModelViewSet):
 class CommentReportViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = CommentReportSerializer
-    queryset = CommentReport.objects.all()
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_fields = ["status", "comment", "reporter"]
+
+    def get_queryset(self):
+        qs = CommentReport.objects.all()
+        user = getattr(self.request, "user", None)
+        if not user or not user.is_authenticated:
+            return CommentReport.objects.none()
+        if user.is_staff:
+            return qs
+        return qs.filter(Q(comment__post__author__user=user) | Q(comment__author__user=user))
+
+
+class PostReportViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
+    serializer_class = PostReportSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_fields = ["status", "post", "reporter"]
+
+    def get_queryset(self):
+        qs = PostReport.objects.all()
+        user = getattr(self.request, "user", None)
+        if not user or not user.is_authenticated:
+            return PostReport.objects.none()
+        if user.is_staff:
+            return qs
+        return qs.filter(post__author__user=user)
 
 
 

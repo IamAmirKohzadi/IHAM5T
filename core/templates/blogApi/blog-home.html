@@ -75,6 +75,16 @@
 	#create-post-button {
 		border-radius: 20px;
 	}
+
+	.comment-verify-note {
+		font-size: 12px;
+		color: #856404;
+		background: #fff3cd;
+		border: 1px solid #ffeeba;
+		border-radius: 6px;
+		padding: 8px;
+		margin-bottom: 10px;
+	}
 </style>
 
 <!-- start banner Area -->
@@ -441,18 +451,25 @@
 								},
 								error: function (xhr) {
 									var message = "Failed to create post.";
+									if (xhr.status === 403) {
+										message = "Verify your account before creating posts.";
+									}
 									if (xhr.responseJSON) {
-										var parts = [];
-										Object.keys(xhr.responseJSON).forEach(function (key) {
-											var value = xhr.responseJSON[key];
-											if (Array.isArray(value)) {
-												parts.push(key + ": " + value.join(", "));
-											} else if (value) {
-												parts.push(key + ": " + value);
+										if (xhr.responseJSON.detail) {
+											message = xhr.responseJSON.detail;
+										} else {
+											var parts = [];
+											Object.keys(xhr.responseJSON).forEach(function (key) {
+												var value = xhr.responseJSON[key];
+												if (Array.isArray(value)) {
+													parts.push(key + ": " + value.join(", "));
+												} else if (value) {
+													parts.push(key + ": " + value);
+												}
+											});
+											if (parts.length) {
+												message = parts.join(" | ");
 											}
-										});
-										if (parts.length) {
-											message = parts.join(" | ");
 										}
 									}
 									showCreateMessage(message);
@@ -466,6 +483,9 @@
 				<div class="widget-wrap">
 					<div class="single-sidebar-widget create-post-widget">
 						{% if request.user.is_authenticated %}
+						{% if not request.user.is_verified %}
+						<p class="comment-verify-note" style="text-align:left;">Verify your email to create posts.</p>
+						{% endif %}
 						<button type="button" id="create-post-button" class="primary-btn text-uppercase">Create Post</button>
 						<div id="create-post-modal" class="post-modal">
 							<div class="post-modal-card">

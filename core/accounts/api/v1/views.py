@@ -88,7 +88,7 @@ class ProfileApiView(generics.RetrieveUpdateAPIView):
     def get_object(self):
         return get_object_or_404(Profile,user=self.request.user)
     def update(self, request, *args, **kwargs):
-        response = self.update(request, *args, **kwargs)
+        response = super().update(request, *args, **kwargs)
         response.data['message'] = 'Changes were done successfully!'
         return response
 
@@ -121,9 +121,9 @@ class ActivationApiView(APIView):
             user_obj.is_verified = True
             user_obj.is_active = True
             user_obj.save()
-            return Response({'detail' : 'ur acc activated successfully!'})
+            return Response({'detail' : 'ur acc verified successfully!'})
         else:
-            return Response({'detail' : 'ur acc is already activated!'})
+            return Response({'detail' : 'ur acc is already verified!'})
 
         
 class ActivationResendApiView(TokenForUserMixin,generics.GenericAPIView):
