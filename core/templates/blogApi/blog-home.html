@@ -1,6 +1,81 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
+<style>
+	.post-modal {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: rgba(0, 0, 0, 0.45);
+		display: none;
+		align-items: center;
+		justify-content: center;
+		z-index: 1100;
+	}
+
+	.post-modal.is-open {
+		display: flex;
+	}
+
+	.post-modal-card {
+		background: #fff;
+		border-radius: 8px;
+		padding: 16px;
+		width: 720px;
+		max-width: 90vw;
+		box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+	}
+
+	.post-modal-card input[type="text"],
+	.post-modal-card textarea,
+	.post-modal-card input[type="file"] {
+		width: 100%;
+		border: 1px solid #ddd;
+		border-radius: 4px;
+		padding: 8px;
+		margin-bottom: 8px;
+		font-size: 14px;
+	}
+
+	.post-modal-row {
+		margin-bottom: 8px;
+		text-align: left;
+		font-size: 14px;
+		color: #555;
+	}
+
+	.post-modal-categories label {
+		display: block;
+		margin-bottom: 4px;
+	}
+
+	.post-modal-actions {
+		display: flex;
+		justify-content: flex-end;
+		gap: 8px;
+	}
+
+	.post-modal-message {
+		font-size: 13px;
+		color: #d9534f;
+		margin-bottom: 8px;
+	}
+
+	.post-modal-message.success {
+		color: #2e7d32;
+	}
+
+	.create-post-widget {
+		text-align: center;
+		margin-bottom: 20px;
+	}
+
+	#create-post-button {
+		border-radius: 20px;
+	}
+</style>
 
 <!-- start banner Area -->
 <section class="banner-area relative blog-home-banner" id="home">
@@ -130,6 +205,15 @@
 					<ul class="pagination" id="posts-pagination"></ul>
 				</nav>
 				<script>
+					function getCookie(name) {
+						var value = "; " + document.cookie;
+						var parts = value.split("; " + name + "=");
+						if (parts.length === 2) {
+							return parts.pop().split(";").shift();
+						}
+						return "";
+					}
+
 					function formatDateTime(value) {
 						if (!value) {
 							return "";
@@ -196,7 +280,8 @@
 									return '<a href="' + link + '">' + name + '</a>';
 								}).join(", ");
 								$item.find(".post-title").text(p.title || "");
-								$item.find(".post-link").attr("href", (p.urls && p.urls.relative) ? p.urls.relative : "#");
+								var detailBase = "{% url 'website:blog-home' %}";
+								$item.find(".post-link").attr("href", p.id ? (detailBase + p.id + "/") : "#");
 								$item.find(".post-excerpt").text(p.excerpt || "");
 								$item.find(".post-image").attr("src", imageUrl);
 								var authorLink = "{% url 'website:blog-home' %}";
@@ -230,11 +315,200 @@
 								}
 							}
 						});
+
+						var categoriesCache = [];
+						var categoryUrl = "{% url 'blog:api-v1:category-list' %}";
+						var postCreateUrl = "{% url 'blog:api-v1:post-list' %}";
+						var $createModal = $("#create-post-modal");
+						var $createMessage = $("#create-post-message");
+
+						function showCreateMessage(text, isSuccess) {
+							if (!text) {
+								$createMessage.hide();
+								$createMessage.text("");
+								$createMessage.removeClass("success");
+								return;
+							}
+							$createMessage.text(text);
+							$createMessage.toggleClass("success", Boolean(isSuccess));
+							$createMessage.show();
+						}
+
+						function renderCategoryCheckboxes(containerId, selected) {
+							var $container = $("#" + containerId);
+							$container.empty();
+							if (!categoriesCache.length) {
+								$container.text("No categories available.");
+								return;
+							}
+							categoriesCache.forEach(function (cat) {
+								var name = cat.name || "";
+								if (!name) {
+									return;
+								}
+								var checked = selected && selected.indexOf(name) !== -1 ? "checked" : "";
+								$container.append(
+									'<label><input type="checkbox" value="' + name + '" ' + checked + '> ' + name + '</label>'
+								);
+							});
+						}
+
+						function loadCategories(callback) {
+							if (categoriesCache.length) {
+								callback();
+								return;
+							}
+							$.getJSON(categoryUrl, function (data) {
+								var items = data.results || data;
+								if (!Array.isArray(items)) {
+									items = [];
+								}
+								categoriesCache = items;
+								callback();
+							}).fail(function () {
+								categoriesCache = [];
+								callback();
+							});
+						}
+
+						$("#create-post-button").on("click", function () {
+							showCreateMessage("");
+							loadCategories(function () {
+								renderCategoryCheckboxes("create-post-categories", []);
+								$createModal.addClass("is-open");
+							});
+						});
+
+						$("#create-post-cancel").on("click", function () {
+							$createModal.removeClass("is-open");
+						});
+
+						$("#create-post-form").on("submit", function (event) {
+							event.preventDefault();
+							showCreateMessage("");
+							var form = this;
+							var formData = new FormData();
+							var title = form.title.value.trim();
+							var content = form.content.value.trim();
+							if (!title || !content) {
+								showCreateMessage("Title and content are required.");
+								return;
+							}
+							formData.append("title", title);
+							formData.append("content", content);
+							if (form.extra_content.value.trim()) {
+								formData.append("extra_content", form.extra_content.value.trim());
+							}
+							if (form.status) {
+								formData.append("status", form.status.checked ? "true" : "false");
+							}
+
+							var selected = [];
+							$("#create-post-categories input[type='checkbox']:checked").each(function () {
+								selected.push($(this).val());
+							});
+							if (!selected.length) {
+								showCreateMessage("Select at least one category.");
+								return;
+							}
+							selected.forEach(function (name) {
+								formData.append("categories", name);
+							});
+
+							if (form.image.files[0]) {
+								formData.append("image", form.image.files[0]);
+							}
+							if (form.image_2.files[0]) {
+								formData.append("image_2", form.image_2.files[0]);
+							}
+							if (form.image_3.files[0]) {
+								formData.append("image_3", form.image_3.files[0]);
+							}
+
+							$.ajax({
+								url: postCreateUrl,
+								method: "POST",
+								headers: { "X-CSRFToken": getCookie("csrftoken") },
+								data: formData,
+								processData: false,
+								contentType: false,
+								success: function () {
+									showCreateMessage("Post created successfully.", true);
+									form.reset();
+									setTimeout(function () {
+										window.location.reload();
+									}, 600);
+								},
+								error: function (xhr) {
+									var message = "Failed to create post.";
+									if (xhr.responseJSON) {
+										var parts = [];
+										Object.keys(xhr.responseJSON).forEach(function (key) {
+											var value = xhr.responseJSON[key];
+											if (Array.isArray(value)) {
+												parts.push(key + ": " + value.join(", "));
+											} else if (value) {
+												parts.push(key + ": " + value);
+											}
+										});
+										if (parts.length) {
+											message = parts.join(" | ");
+										}
+									}
+									showCreateMessage(message);
+								}
+							});
+						});
 					});
 				</script>
 			</div>
 			<div class="col-lg-4 sidebar-widgets">
 				<div class="widget-wrap">
+					<div class="single-sidebar-widget create-post-widget">
+						{% if request.user.is_authenticated %}
+						<button type="button" id="create-post-button" class="primary-btn text-uppercase">Create Post</button>
+						<div id="create-post-modal" class="post-modal">
+							<div class="post-modal-card">
+								<h5>Create Post</h5>
+								<form id="create-post-form" enctype="multipart/form-data">
+									{% csrf_token %}
+									<input type="text" name="title" placeholder="Title" required>
+									<textarea name="content" placeholder="Content" rows="4" required></textarea>
+									<textarea name="extra_content" placeholder="Extra content (optional)" rows="3"></textarea>
+									{% if request.user.is_staff %}
+									<div class="post-modal-row">
+										<label><input type="checkbox" name="status" checked> Published</label>
+									</div>
+									{% endif %}
+									<div class="post-modal-row">
+										<label>Categories</label>
+										<div id="create-post-categories" class="post-modal-categories"></div>
+									</div>
+									<div class="post-modal-row">
+										<label>Image</label>
+										<input type="file" name="image" accept="image/*">
+									</div>
+									<div class="post-modal-row">
+										<label>Image 2</label>
+										<input type="file" name="image_2" accept="image/*">
+									</div>
+									<div class="post-modal-row">
+										<label>Image 3</label>
+										<input type="file" name="image_3" accept="image/*">
+									</div>
+									<div id="create-post-message" class="post-modal-message" style="display:none;"></div>
+									<div class="post-modal-actions">
+										<button type="button" id="create-post-cancel" class="primary-btn text-uppercase"
+											style="background:#ccc;color:#222;">Cancel</button>
+										<button type="submit" class="primary-btn text-uppercase">Save</button>
+									</div>
+								</form>
+							</div>
+						</div>
+						{% else %}
+						<a href="{% url 'login' %}">Login to create a post!</a>
+						{% endif %}
+					</div>
 					{% include 'blogApi/blog-search.html' %}
 					{% include 'blogApi/blog-writer.html' %}
 

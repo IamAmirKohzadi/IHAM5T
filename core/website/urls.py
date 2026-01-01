@@ -10,4 +10,6 @@ urlpatterns = [
     path('contact/',ContactView.as_view(),name='contact'),
     path('newsletter/',NewsletterView.as_view(),name='newsletter'),
     path('blog/',BlogHome.as_view(),name='blog-home'),
+    path('blog/<int:pk>/',BlogSingle.as_view(),name='blog-single'),
+
 ]

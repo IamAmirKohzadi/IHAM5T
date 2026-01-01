@@ -41,11 +41,27 @@
                     <div class="col-lg-6 col-sm-6 col-6 header-top-left">
                         <ul>
                             {% if request.user.is_authenticated %}
-                            <li><a href="">you are logged in as {{request.user.username}}</a></li>
-                            <li><a href="{% url 'accounts:logout' %}">log out!</a></li>
+                            <li><a href="#">{{request.user.username}}</a></li>
+                            <li>
+                                <form method="post" action="{% url 'logout' %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <a href="#" onclick="this.closest('form').submit(); return false;">log out!</a>
+                                </form>
+                            </li>
+                            <li>
+                                <a href="{% url 'profile-page' %}">
+                                    {% with profile=request.user.profile_set.first %}
+                                    {% if profile and profile.first_name or profile.last_name %}
+                                    {{ profile.first_name }} {{ profile.last_name }}
+                                    {% else %}
+                                    {{ request.user.email }}
+                                    {% endif %}
+                                    {% endwith %}
+                                </a>
+                            </li>
                             {% else %}
-                            <li><a href="{% url 'accounts:login' %}">Login</a></li>
-                            <li><a href="{% url 'accounts:signup' %}">sign up here kale sexy!</a></li>
+                            <li><a href="{% url 'login' %}">Login</a></li>
+                            <li><a href="{% url 'signup-page' %}">sign up here kale sexy!</a></li>
                             {% endif %}
 
                         </ul>

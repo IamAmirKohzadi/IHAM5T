@@ -1,8 +1,281 @@
 {% extends 'base.html' %}
 {% load static %}
-{% load blog_tags %}
 {% block content %}
-{% load humanize %}
+<style>
+	.user-info-widget .social-disabled,
+	.single-post .social-disabled {
+		pointer-events: none;
+		opacity: 0.4;
+	}
+
+	.nav-hidden {
+		visibility: hidden;
+		pointer-events: none;
+	}
+
+	.post-gallery-img {
+		width: 100%;
+		height: 240px;
+		object-fit: cover;
+		display: block;
+	}
+
+	.nav-thumb-img {
+		width: 60px;
+		height: 60px;
+		object-fit: cover;
+		background: #fff;
+		padding: 4px;
+		border-radius: 4px;
+		display: block;
+	}
+
+	.comment-item {
+		margin-bottom: 20px;
+	}
+
+	.comment-meta {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		background: #f7f7f7;
+		border: 1px solid #eee;
+		border-radius: 14px;
+		padding: 4px 10px;
+		font-size: 13px;
+		color: #777;
+		margin-bottom: 6px;
+	}
+
+	.comment-body {
+		font-size: 16px;
+		line-height: 1.6;
+	}
+
+	.comment-actions a {
+		margin-right: 12px;
+		cursor: pointer;
+		font-size: 12px;
+		color: #777;
+	}
+
+	.comment-actions .comment-delete {
+		color: #b94a48;
+	}
+
+	.comment-edit-text {
+		width: 100%;
+		min-height: 90px;
+		border: 1px solid #ddd;
+		border-radius: 4px;
+		padding: 8px;
+		font-size: 14px;
+	}
+
+	.comment-edit-error {
+		display: block;
+		margin-top: 6px;
+		font-size: 12px;
+		color: #d9534f;
+	}
+
+	.report-modal {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: rgba(0, 0, 0, 0.45);
+		display: none;
+		align-items: center;
+		justify-content: center;
+		z-index: 1100;
+	}
+
+	.report-modal.is-open {
+		display: flex;
+	}
+
+	.report-card {
+		background: #fff;
+		border-radius: 8px;
+		padding: 16px;
+		width: 320px;
+		box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+	}
+
+	.report-card h5 {
+		margin-bottom: 10px;
+	}
+
+	.report-card textarea {
+		width: 100%;
+		min-height: 90px;
+		border: 1px solid #ddd;
+		border-radius: 4px;
+		padding: 8px;
+		font-size: 14px;
+	}
+
+	.report-actions {
+		margin-top: 10px;
+		display: flex;
+		justify-content: flex-end;
+		gap: 8px;
+	}
+
+	.report-message {
+		margin-top: 8px;
+		font-size: 13px;
+		color: #d9534f;
+	}
+
+	.report-message.success {
+		color: #2e7d32;
+	}
+
+	.post-actions {
+		display: flex;
+		gap: 10px;
+		margin-bottom: 20px;
+	}
+
+	.post-actions button {
+		flex: 1;
+		border-radius: 20px;
+	}
+
+	.post-actions .post-delete-btn {
+		background: #d9534f;
+	}
+
+	.post-modal {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: rgba(0, 0, 0, 0.45);
+		display: none;
+		align-items: center;
+		justify-content: center;
+		z-index: 1100;
+	}
+
+	.post-modal.is-open {
+		display: flex;
+	}
+
+	.post-modal-card {
+		background: #fff;
+		border-radius: 8px;
+		padding: 16px;
+		width: 720px;
+		max-width: 90vw;
+		box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+	}
+
+	.post-modal-card input[type="text"],
+	.post-modal-card textarea,
+	.post-modal-card input[type="file"] {
+		width: 100%;
+		border: 1px solid #ddd;
+		border-radius: 4px;
+		padding: 8px;
+		margin-bottom: 8px;
+		font-size: 14px;
+	}
+
+	.post-modal-row {
+		margin-bottom: 8px;
+		text-align: left;
+		font-size: 14px;
+		color: #555;
+	}
+
+	.post-modal-categories label {
+		display: block;
+		margin-bottom: 4px;
+	}
+
+	.post-modal-actions {
+		display: flex;
+		justify-content: flex-end;
+		gap: 8px;
+	}
+
+	.post-modal-message {
+		font-size: 13px;
+		color: #d9534f;
+		margin-bottom: 8px;
+	}
+
+	.post-modal-message.success {
+		color: #2e7d32;
+	}
+
+	.post-delete-modal {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: rgba(0, 0, 0, 0.45);
+		display: none;
+		align-items: center;
+		justify-content: center;
+		z-index: 1100;
+	}
+
+	.post-delete-modal.is-open {
+		display: flex;
+	}
+
+	.post-delete-card {
+		background: #fff;
+		border-radius: 8px;
+		padding: 16px;
+		width: 300px;
+		box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+		text-align: center;
+	}
+
+	.post-delete-card p {
+		margin-bottom: 12px;
+	}
+
+	.comments-area {
+		background: #fff;
+		border-radius: 8px;
+		box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+		padding: 20px;
+	}
+
+	.comments-head {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 12px;
+	}
+
+	.comments-count {
+		font-size: 12px;
+		color: #777;
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+	}
+
+	.comment-children {
+		margin-left: 30px;
+		padding-left: 10px;
+		border-left: 2px solid #eee;
+	}
+
+	.comment-children.is-collapsed {
+		display: none;
+	}
+</style>
 
 <!-- start banner Area -->
 <section class="relative about-banner">
@@ -10,15 +283,15 @@
 	<div class="container">
 		<div class="row d-flex align-items-center justify-content-center">
 			<div class="about-content col-lg-12">
-				<h1 class="text-white">
-					{{post.title}}
-				</h1>
+				<h1 class="text-white" id="post-title"></h1>
 				<p class="text-white link-nav"><a href="{% url 'website:index' %}">Home </a> <span
-						class="lnr lnr-arrow-right"></span><a href="{% url 'blog:index' %}">Blog </a> <span
-						class="lnr lnr-arrow-right"></span> {{post.title}}</p>
+						class="lnr lnr-arrow-right"></span><a href="{% url 'website:blog-home' %}">Blog </a> <span
+						class="lnr lnr-arrow-right"></span> <span id="post-title-breadcrumb"></span></p>
 			</div>
 		</div>
 	</div>
+	<div id="post-meta" data-can-comment="{% if request.user.is_authenticated %}true{% else %}false{% endif %}"
+		style="display:none;"></div>
 </section>
 <!-- End banner Area -->
 
@@ -30,65 +303,50 @@
 				<div class="single-post row">
 					<div class="col-lg-12">
 						<div class="feature-img">
-							<img class="img-fluid" src="{% static 'img/blog/feature-img1.jpg' %}" alt="">
+							<img class="img-fluid" id="post-image" src="{% static 'img/blog/feature-img1.jpg' %}"
+								alt="">
 						</div>
 					</div>
 					<div class="col-lg-3  col-md-3 meta-details">
-						<ul class="tags">
-							{% for cat in post.categories.all %}
-							<a href="#">{{cat.name}}</a>{% if not forloop.last %}, {% endif %}
-							{% endfor %}
-						</ul>
+						<ul class="tags" id="post-categories"></ul>
 						<div class="user-details row">
-							<p class="user-name col-lg-12 col-md-12 col-6"><a href="#">{{post.author.get_full_name}}</a> <span
+							<p class="user-name col-lg-12 col-md-12 col-6"><a href="#" id="post-author"></a> <span
 									class="lnr lnr-user"></span></p>
-							<p class="date col-lg-12 col-md-12 col-6"><a href="#">{{post.published_date| date:'d/M/Y' }}</a> <span
+							<p class="date col-lg-12 col-md-12 col-6"><span id="post-date"></span> <span
 									class="lnr lnr-calendar-full"></span></p>
-							<p class="view col-lg-12 col-md-12 col-6"><a href="#">{{post.counted_view}}</a> <span
+							<p class="view col-lg-12 col-md-12 col-6"><span id="post-views"></span> <span
 									class="lnr lnr-eye"></span></p>
-							<p class="comments col-lg-12 col-md-12 col-6"><a href="#">{{post.comment_count}} comments!</a> <span
+							<p class="comments col-lg-12 col-md-12 col-6"><span id="post-comments-inline">0 comments</span> <span
 									class="lnr lnr-bubble"></span></p>
 							<ul class="social-links col-lg-12 col-md-12 col-6">
-								<li><a href="#"><i class="fa fa-facebook"></i></a></li>
-								<li><a href="#"><i class="fa fa-twitter"></i></a></li>
-								<li><a href="#"><i class="fa fa-github"></i></a></li>
-								<li><a href="#"><i class="fa fa-behance"></i></a></li>
+								<li><a id="post-author-facebook" href="#"><i class="fa fa-facebook"></i></a></li>
+								<li><a id="post-author-twitter" href="#"><i class="fa fa-twitter"></i></a></li>
+								<li><a id="post-author-github" href="#"><i class="fa fa-github"></i></a></li>
+								<li><a id="post-author-behance" href="#"><i class="fa fa-behance"></i></a></li>
 							</ul>
 						</div>
 					</div>
 					<div class="col-lg-9 col-md-9">
-						<h3 class="mt-20 mb-20">{{post.title}}</h3>
-						<p class="excert">
-							{{post.content}}
-						</p>
+						<h3 class="mt-20 mb-20" id="post-title-body"></h3>
+						<p class="excert" id="post-content"></p>
 					</div>
 					<div class="col-lg-12">
 						<div class="quotes">
-							MCSE boot camps have its supporters and its detractors. Some people do not understand why
-							you should have to spend money on boot camp when you can get the MCSE study materials
-							yourself at a fraction of the camp price. However, who has the willpower to actually sit
-							through a self-imposed MCSE training.
+							{% if site_settings and site_settings.blog_quote %}
+							{{ site_settings.blog_quote }}
+							{% endif %}
 						</div>
 						<div class="row mt-30 mb-30">
-							<div class="col-6">
-								<img class="img-fluid" src="{% static 'img/blog/post-img1.jpg' %}" alt="">
+							<div class="col-6" id="post-image-2-wrap">
+								<img class="img-fluid post-gallery-img" id="post-image-2"
+									src="{% static 'img/blog/default.jpg' %}" alt="">
 							</div>
-							<div class="col-6">
-								<img class="img-fluid" src="{% static 'img/blog/post-img2.jpg' %}" alt="">
+							<div class="col-6" id="post-image-3-wrap">
+								<img class="img-fluid post-gallery-img" id="post-image-3"
+									src="{% static 'img/blog/default.jpg' %}" alt="">
 							</div>
 							<div class="col-lg-12 mt-30">
-								<p>
-									MCSE boot camps have its supporters and its detractors. Some people do not
-									understand why you should have to spend money on boot camp when you can get the MCSE
-									study materials yourself at a fraction of the camp price. However, who has the
-									willpower.
-								</p>
-								<p>
-									MCSE boot camps have its supporters and its detractors. Some people do not
-									understand why you should have to spend money on boot camp when you can get the MCSE
-									study materials yourself at a fraction of the camp price. However, who has the
-									willpower.
-								</p>
+								<p id="post-extra-content"></p>
 							</div>
 						</div>
 					</div>
@@ -96,101 +354,136 @@
 				<div class="navigation-area">
 					<div class="row">
 						<div
-							class="col-lg-6 col-md-6 col-12 nav-left flex-row d-flex justify-content-start align-items-center">
+							class="col-lg-6 col-md-6 col-12 nav-left nav-hidden flex-row d-flex justify-content-start align-items-center">
 							<div class="thumb">
-								{% if prev_post %}
-								<a href="{% url 'blog:single' prev_post.id %}"><img class="img-fluid" src="{% static 'img/blog/prev.jpg' %}" alt=""></a>
-								{% endif %}
+								<a href="#" id="post-prev-thumb"><img class="img-fluid nav-thumb-img"
+										src="{% static 'img/blog/prev.jpg' %}" alt=""></a>
 							</div>
 							<div class="arrow">
-								<a href="#"><span class="lnr text-white lnr-arrow-left"></span></a>
+								<a href="#" id="post-prev-arrow"><span class="lnr text-white lnr-arrow-left"></span></a>
 							</div>
 							<div class="detials">
-								{% if prev_post %}
-								<a href="{% url 'blog:single' prev_post.id %}">{{ prev_post.title }}</a>
-								{% endif %}
+								<a href="#" id="post-prev-link">Previous</a>
 							</div>
 						</div>
 						<div
-							class="col-lg-6 col-md-6 col-12 nav-right flex-row d-flex justify-content-end align-items-center">
+							class="col-lg-6 col-md-6 col-12 nav-right nav-hidden flex-row d-flex justify-content-end align-items-center">
 							<div class="detials">
-								{% if next_post %}
-								<a href="{% url 'blog:single' next_post.id %}">{{ next_post.title }}</a>
-
-								{% endif %}
+								<a href="#" id="post-next-link">Next</a>
 							</div>
 							<div class="arrow">
-								<a href="#"><span class="lnr text-white lnr-arrow-right"></span></a>
+								<a href="#" id="post-next-arrow"><span
+										class="lnr text-white lnr-arrow-right"></span></a>
 							</div>
 							<div class="thumb">
-								{% if next_post %}
-								<a href="{% url 'blog:single' next_post.id %}"><img class="img-fluid" src="{% static 'img/blog/next.jpg' %}" alt=""></a>
-								{% endif %}
+								<a href="#" id="post-next-thumb"><img class="img-fluid nav-thumb-img"
+										src="{% static 'img/blog/next.jpg' %}" alt=""></a>
 							</div>
 						</div>
 					</div>
 				</div>
 				<div class="comments-area">
-					{% if post.comment_count > 1 %}
-						<h4>{{post.comment_count}} comments!</h4>
-					{% elif post.comment_count == 1 %}
-						<h4>{{post.comment_count}} comment!</h4>
-					{% else %}
-						<h4>no comments here!be the first one!</h4>
-					{% endif %}
-					{% for comment in comments %}
-					<div class="comment-list">
-						<div class="single-comment justify-content-between d-flex">
-							<div class="user justify-content-between d-flex">
-								<div class="thumb">
-									<img src="{% static 'img/blog/c1.jpg' %}" alt="">
-								</div>
-								<div class="desc">
-									<h5><a href="#">{{comment.name}}</a></h5>
-									<p class="date">{{comment.created_date|naturalday}} </p>
-									<p class="comment">
-										{{comment.message}}
-									</p>
-								</div>
+					<div class="comments-head">
+						<h4 id="comments-title">Comments</h4>
+						<div class="comments-count">
+							<span id="post-comments">0 comments</span>
+							<span class="lnr lnr-bubble"></span>
+						</div>
+					</div>
+					<div id="comments-list"></div>
+					<div id="comments-empty" style="display:none;">
+						<p>No comments yet.</p>
+					</div>
+					<div id="report-modal" class="report-modal">
+						<div class="report-card">
+							<h5>Report Comment</h5>
+							<textarea id="report-reason" placeholder="Tell us what is wrong..." required></textarea>
+							<div id="report-message" class="report-message" style="display:none;"></div>
+							<div class="report-actions">
+								<button type="button" id="report-cancel" class="primary-btn text-uppercase"
+									style="background:#ccc;color:#222;">Cancel</button>
+								<button type="button" id="report-submit" class="primary-btn text-uppercase">Send</button>
 							</div>
 						</div>
 					</div>
-					{% endfor %}
-				</div>
-				<div class="comment-form">
-					<h4>Leave a Comment</h4>
-					<form method="post" action="{% url 'blog:single' pid=post.id %}">
-						{% csrf_token %}
-						<input type="hidden" name="post" value='{{post.id}}'>
 
-						{% if request.user.is_authenticated %}
-						<input type="hidden" name="name" value={{request.user.username}}>
-						{% else %}
-						<div class="form-group form-inline">
-							<div class="form-group col-lg-6 col-md-12 name">
-								<input type="text" class="form-control" name="name" placeholder="Enter Name"
-									onfocus="this.placeholder = ''" onblur="this.placeholder = 'Enter Name'">
+					{% if request.user.is_authenticated %}
+					<div class="comment-form">
+						<form id="comment-form">
+							<input type="hidden" id="comment-parent-id" value="">
+							<div class="form-group">
+								<textarea id="comment-message" class="form-control mb-10" rows="3"
+									placeholder="Write your comment" required></textarea>
 							</div>
+							<button type="submit" class="primary-btn text-uppercase">Post Comment</button>
+							<a href="#" id="comment-cancel-reply" style="margin-left:10px; display:none;">Cancel
+								Reply</a>
+						</form>
+					</div>
+					{% else %}
+					<p>
+						<a href="{% url 'login' %}">Login</a> to write a comment.
+					</p>
+					{% endif %}
+				</div>
+				<div id="post-edit-modal" class="post-modal">
+					<div class="post-modal-card">
+						<h5>Edit Post</h5>
+						<form id="post-edit-form" enctype="multipart/form-data">
+							<input type="text" name="title" placeholder="Title" required>
+							<textarea name="content" placeholder="Content" rows="4" required></textarea>
+							<textarea name="extra_content" placeholder="Extra content (optional)" rows="3"></textarea>
+							{% if request.user.is_staff %}
+							<div class="post-modal-row">
+								<label><input type="checkbox" name="status"> Published</label>
+							</div>
+							{% endif %}
+							<div class="post-modal-row">
+								<label>Categories</label>
+								<div id="edit-post-categories" class="post-modal-categories"></div>
+							</div>
+							<div class="post-modal-row">
+								<label>Image</label>
+								<input type="file" name="image" accept="image/*">
+							</div>
+							<div class="post-modal-row">
+								<label>Image 2</label>
+								<input type="file" name="image_2" accept="image/*">
+							</div>
+							<div class="post-modal-row">
+								<label>Image 3</label>
+								<input type="file" name="image_3" accept="image/*">
+							</div>
+							<div id="edit-post-message" class="post-modal-message" style="display:none;"></div>
+							<div class="post-modal-actions">
+								<button type="button" id="post-edit-cancel" class="primary-btn text-uppercase"
+									style="background:#ccc;color:#222;">Cancel</button>
+								<button type="submit" class="primary-btn text-uppercase">Save</button>
+							</div>
+						</form>
+					</div>
+				</div>
+				<div id="post-delete-modal" class="post-delete-modal">
+					<div class="post-delete-card">
+						<p>Delete this post?</p>
+						<div class="post-modal-actions">
+							<button type="button" id="post-delete-cancel" class="primary-btn text-uppercase"
+								style="background:#ccc;color:#222;">No</button>
+							<button type="button" id="post-delete-confirm"
+								class="primary-btn text-uppercase post-delete-btn">Yes</button>
 						</div>
-						<div class="form-group">
-							<input type="text" class="form-control" name="subject" placeholder="Subject"
-								onfocus="this.placeholder = ''" onblur="this.placeholder = 'Subject'">
-						</div>
-						{% endif %}
-						<div class="form-group">
-							<textarea class="form-control mb-10" rows="5" name="message" placeholder="Messege"
-								onfocus="this.placeholder = ''" onblur="this.placeholder = 'Messege'"
-								required=""></textarea>
-						</div>
-						<button type="submit" class="primary-btn text-uppercase">Post Comment</button>
-					</form>
+					</div>
 				</div>
 			</div>
 			<div class="col-lg-4 sidebar-widgets">
 				<div class="widget-wrap">
+					<div id="post-actions" class="single-sidebar-widget post-actions" style="display:none;">
+						<button type="button" id="post-edit-btn" class="primary-btn text-uppercase">Edit</button>
+						<button type="button" id="post-delete-btn"
+							class="primary-btn text-uppercase post-delete-btn">Delete</button>
+					</div>
 					{% include 'blogApi/blog-search.html' %}
 					{% include 'blogApi/blog-writer.html' %}
-					{% latestpost %}
 					{% include 'blogApi/blog-ads.html' %}
 					{% include 'blogApi/blog-post-categories.html' %}
 					{% include 'blogApi/blog-tags.html' %}
@@ -200,5 +493,648 @@
 	</div>
 </section>
 <!-- End post-content Area -->
+
+<script>
+	function formatDateTime(value) {
+		if (!value) {
+			return "";
+		}
+		var date = new Date(value);
+		if (isNaN(date.getTime())) {
+			return "";
+		}
+		return new Intl.DateTimeFormat("en-GB", {
+			day: "2-digit",
+			month: "short",
+			year: "numeric",
+			hour: "2-digit",
+			minute: "2-digit"
+		}).format(date);
+	}
+
+	function getCookie(name) {
+		var value = "; " + document.cookie;
+		var parts = value.split("; " + name + "=");
+		if (parts.length === 2) {
+			return parts.pop().split(";").shift();
+		}
+		return "";
+	}
+
+	function buildCategories(categoriesInfo) {
+		return categoriesInfo.map(function (cat, index) {
+			var name = cat.name || "";
+			var link = "{% url 'website:blog-home' %}";
+			if (cat.id) {
+				link += "?categories=" + encodeURIComponent(cat.id);
+			} else {
+				link = "#";
+			}
+			var sep = index === categoriesInfo.length - 1 ? "" : ", ";
+			return '<a href="' + link + '">' + name + '</a>' + sep;
+		}).join("");
+	}
+
+	function renderComments(items, canComment) {
+		var byId = {};
+		var roots = [];
+
+		items.forEach(function (item) {
+			item.children = [];
+			byId[item.id] = item;
+		});
+
+		items.forEach(function (item) {
+			if (item.parent && byId[item.parent]) {
+				byId[item.parent].children.push(item);
+			} else {
+				roots.push(item);
+			}
+		});
+
+		function renderNode(node) {
+			var author = node.author_name || "Anonymous";
+			var date = formatDateTime(node.created_date);
+			var replyLink = "";
+			var reportLink = "";
+			var ownerLinks = "";
+			var toggleLink = "";
+			if (canComment && node.depth < 2) {
+				replyLink = '<a href="#" class="comment-reply">Reply</a>';
+			}
+			if (canComment) {
+				reportLink = '<a href="#" class="comment-report">Report</a>';
+			}
+			if (node.is_owner) {
+				ownerLinks = '<a href="#" class="comment-edit">Edit</a><a href="#" class="comment-delete">Delete</a>';
+			}
+			if (node.children.length) {
+				toggleLink = '<a href="#" class="comment-toggle" data-count="' + node.children.length + '">Show replies (' +
+					node.children.length + ')</a>';
+			}
+			var html = '<div class="comment-item" data-id="' + node.id + '">' +
+				'<div class="comment-meta"><strong>' + author + '</strong> - ' + date + '</div>' +
+				'<div class="comment-body">' + (node.message || "") + '</div>' +
+				'<div class="comment-actions">' +
+					toggleLink +
+					replyLink +
+					reportLink +
+					ownerLinks +
+				'</div>';
+
+			if (node.children.length) {
+				html += '<div class="comment-children is-collapsed">';
+				node.children.forEach(function (child) {
+					html += renderNode(child);
+				});
+				html += '</div>';
+			}
+			html += '</div>';
+			return html;
+		}
+
+		var output = "";
+		roots.forEach(function (node) {
+			output += renderNode(node);
+		});
+		return output;
+	}
+
+	function setSocialLink(selector, url) {
+		var $link = $(selector);
+		if (url) {
+			$link.attr("href", url);
+			$link.attr("target", "_blank");
+			$link.attr("rel", "noopener");
+			$link.attr("title", "");
+			$link.removeClass("social-disabled");
+			$link.attr("aria-disabled", "false");
+		} else {
+			$link.removeAttr("href");
+			$link.removeAttr("target");
+			$link.removeAttr("rel");
+			$link.attr("title", "No link available");
+			$link.addClass("social-disabled");
+			$link.attr("aria-disabled", "true");
+		}
+	}
+
+	window.addEventListener('load', function () {
+		if (!window.jQuery) {
+			return;
+		}
+
+		var pathParts = window.location.pathname.split("/").filter(Boolean);
+		var postId = pathParts[pathParts.length - 1];
+		if (!postId) {
+			return;
+		}
+
+		var defaultImage = "{% static 'img/blog/default.jpg' %}";
+		var defaultGalleryImage = "{% static 'img/blog/default.jpg' %}";
+		var apiUrl = "{% url 'blog:api-v1:post-list' %}" + postId + "/";
+
+		var commentsUrl = "{% url 'blog:api-v1:comment-list' %}";
+		var reportUrl = "{% url 'blog:api-v1:comment-report-list' %}";
+		var categoryUrl = "{% url 'blog:api-v1:category-list' %}";
+		var csrfToken = getCookie("csrftoken");
+		var metaEl = document.getElementById("post-meta");
+		var canComment = metaEl && metaEl.dataset.canComment === "true";
+		var categoriesCache = [];
+		var currentPost = null;
+
+		function updateCommentCount(total) {
+			var safeTotal = parseInt(total, 10);
+			if (isNaN(safeTotal)) {
+				safeTotal = 0;
+			}
+			var label = safeTotal + (safeTotal === 1 ? " comment" : " comments");
+			$("#post-comments").text(label);
+			$("#post-comments-inline").text(label);
+		}
+
+		function loadCategories(callback) {
+			if (categoriesCache.length) {
+				callback();
+				return;
+			}
+			$.getJSON(categoryUrl, function (data) {
+				var items = data.results || data;
+				if (!Array.isArray(items)) {
+					items = [];
+				}
+				categoriesCache = items;
+				callback();
+			}).fail(function () {
+				categoriesCache = [];
+				callback();
+			});
+		}
+
+		function renderCategoryCheckboxes(containerId, selected) {
+			var $container = $("#" + containerId);
+			$container.empty();
+			if (!categoriesCache.length) {
+				$container.text("No categories available.");
+				return;
+			}
+			categoriesCache.forEach(function (cat) {
+				var name = cat.name || "";
+				if (!name) {
+					return;
+				}
+				var checked = selected && selected.indexOf(name) !== -1 ? "checked" : "";
+				$container.append(
+					'<label><input type="checkbox" value="' + name + '" ' + checked + '> ' + name + '</label>'
+				);
+			});
+		}
+
+		function showEditMessage(text, isSuccess) {
+			var $msg = $("#edit-post-message");
+			if (!text) {
+				$msg.hide();
+				$msg.text("");
+				$msg.removeClass("success");
+				return;
+			}
+			$msg.text(text);
+			$msg.toggleClass("success", Boolean(isSuccess));
+			$msg.show();
+		}
+
+		function loadComments() {
+			$.getJSON(commentsUrl, { post: postId, ordering: "created_date" }, function (data) {
+				var comments = data && data.results ? data.results : data;
+				if (!Array.isArray(comments)) {
+					comments = [];
+				}
+				var seenIds = {};
+				comments = comments.filter(function (item) {
+					if (!item || item.id === undefined || item.id === null) {
+						return false;
+					}
+					if (seenIds[item.id]) {
+						return false;
+					}
+					seenIds[item.id] = true;
+					return true;
+				});
+				var total = comments.length;
+				if (data && data.total_objects !== undefined) {
+					total = data.total_objects;
+				} else if (data && data.count !== undefined) {
+					total = data.count;
+				}
+				updateCommentCount(total);
+
+				if (comments.length) {
+					$("#comments-list").html(renderComments(comments, canComment));
+					$("#comments-empty").hide();
+				} else {
+					$("#comments-list").empty();
+					$("#comments-empty").show();
+				}
+			}).fail(function () {
+				updateCommentCount(0);
+				$("#comments-list").empty();
+				$("#comments-empty").show();
+			});
+		}
+
+	$.getJSON(apiUrl, function (data) {
+		currentPost = data;
+		$("#post-title").text(data.title || "");
+		$("#post-title-breadcrumb").text(data.title || "");
+		$("#post-title-body").text(data.title || "");
+		$("#post-content").html(data.content || "");
+		$("#post-date").text(formatDateTime(data.created_date));
+		$("#post-views").text(data.counted_view || 0);
+
+		var imageUrl = data.image ? data.image : defaultImage;
+		$("#post-image").attr("src", imageUrl);
+		var image2Url = data.image_2 ? data.image_2 : defaultGalleryImage;
+		var image3Url = data.image_3 ? data.image_3 : defaultGalleryImage;
+		$("#post-image-2").attr("src", image2Url);
+		$("#post-image-3").attr("src", image3Url);
+		$("#post-extra-content").text(data.extra_content || "");
+
+		var authorLink = "{% url 'website:blog-home' %}";
+		if (data.author_id) {
+			authorLink += "?author=" + encodeURIComponent(data.author_id);
+		}
+		$("#post-author").attr("href", authorLink);
+		$("#post-author").text(data.author_name || "");
+
+		var baseDetail = "{% url 'website:blog-home' %}";
+		var $prevWrap = $("#post-prev-link").closest(".nav-left");
+		var $nextWrap = $("#post-next-link").closest(".nav-right");
+		$prevWrap.addClass("nav-hidden");
+		$nextWrap.addClass("nav-hidden");
+		if (data.previous_post && data.previous_post.id) {
+			var prevHref = baseDetail + data.previous_post.id + "/";
+			$("#post-prev-link").attr("href", prevHref).text("Previous");
+			$("#post-prev-thumb").attr("href", prevHref);
+			$("#post-prev-arrow").attr("href", prevHref);
+			$prevWrap.removeClass("nav-hidden");
+		}
+
+		if (data.next_post && data.next_post.id) {
+			var nextHref = baseDetail + data.next_post.id + "/";
+			$("#post-next-link").attr("href", nextHref).text("Next");
+			$("#post-next-thumb").attr("href", nextHref);
+			$("#post-next-arrow").attr("href", nextHref);
+			$nextWrap.removeClass("nav-hidden");
+		}
+
+		var socialLinks = data.author_social_links || {};
+		setSocialLink("#post-author-facebook", socialLinks.facebook);
+		setSocialLink("#post-author-twitter", socialLinks.twitter);
+		setSocialLink("#post-author-github", socialLinks.github);
+		setSocialLink("#post-author-behance", socialLinks.behance);
+
+		var categoriesInfo = Array.isArray(data.categories_info) ? data.categories_info : [];
+		if (!categoriesInfo.length && Array.isArray(data.categories)) {
+			categoriesInfo = data.categories.map(function (name) {
+				return { name: name };
+			});
+		}
+		$("#post-categories").html(buildCategories(categoriesInfo));
+
+		if (data.can_edit) {
+			$("#post-actions").show();
+		}
+	}).fail(function () {
+		window.location.href = "{% url 'website:blog-home' %}";
+	});
+
+	loadComments();
+
+		function showCommentError($comment, message) {
+			var $error = $comment.find(".comment-edit-error");
+			if (!$error.length) {
+				$error = $('<span class="comment-edit-error"></span>');
+				$comment.find(".comment-actions").append($error);
+			}
+			$error.text(message);
+		}
+
+		function clearCommentError($comment) {
+			$comment.find(".comment-edit-error").remove();
+		}
+
+		$("#comments-list").on("click", ".comment-reply", function (event) {
+			event.preventDefault();
+			var commentId = $(this).closest(".comment-item").data("id");
+			$("#comment-parent-id").val(commentId);
+			$("#comment-cancel-reply").show();
+			$("#comment-message").focus();
+		});
+
+		$("#comments-list").on("click", ".comment-toggle", function (event) {
+			event.preventDefault();
+			var $toggle = $(this);
+			var $comment = $toggle.closest(".comment-item");
+			var $children = $comment.children(".comment-children");
+			if (!$children.length) {
+				return;
+			}
+			var count = $toggle.data("count") || $children.children(".comment-item").length;
+			if ($children.hasClass("is-collapsed")) {
+				$children.removeClass("is-collapsed");
+				$toggle.text("Hide replies (" + count + ")");
+			} else {
+				$children.addClass("is-collapsed");
+				$toggle.text("Show replies (" + count + ")");
+			}
+		});
+
+		var reportModal = document.getElementById("report-modal");
+		var reportReason = document.getElementById("report-reason");
+		var reportSubmit = document.getElementById("report-submit");
+		var reportCancel = document.getElementById("report-cancel");
+		var reportMessage = document.getElementById("report-message");
+		var reportCommentId = null;
+
+		function openReportModal(commentId) {
+			reportCommentId = commentId;
+			reportReason.value = "";
+			reportMessage.textContent = "";
+			reportMessage.style.display = "none";
+			reportMessage.classList.remove("success");
+			reportModal.classList.add("is-open");
+		}
+
+		function closeReportModal() {
+			reportModal.classList.remove("is-open");
+			reportCommentId = null;
+		}
+
+		reportCancel.addEventListener("click", function () {
+			closeReportModal();
+		});
+
+		reportSubmit.addEventListener("click", function () {
+			var reason = reportReason.value.trim();
+			if (!reason) {
+				reportMessage.textContent = "Please enter a reason.";
+				reportMessage.style.display = "block";
+				return;
+			}
+			$.ajax({
+				url: reportUrl,
+				method: "POST",
+				headers: { "X-CSRFToken": csrfToken },
+				data: { comment: reportCommentId, reason: reason },
+				success: function () {
+					reportMessage.textContent = "Report submitted. Thanks.";
+					reportMessage.classList.add("success");
+					reportMessage.style.display = "block";
+					setTimeout(closeReportModal, 800);
+				},
+				error: function () {
+					reportMessage.textContent = "Failed to report comment.";
+					reportMessage.style.display = "block";
+				}
+			});
+		});
+
+		$("#comments-list").on("click", ".comment-report", function (event) {
+			event.preventDefault();
+			if (!canComment) {
+				window.location.href = "{% url 'login' %}";
+				return;
+			}
+			var commentId = $(this).closest(".comment-item").data("id");
+			openReportModal(commentId);
+		});
+
+		$("#post-edit-btn").on("click", function () {
+			if (!currentPost) {
+				return;
+			}
+			showEditMessage("");
+			var categoriesSelected = (currentPost.categories || []).slice();
+			$("#post-edit-form")[0].title.value = currentPost.title || "";
+			$("#post-edit-form")[0].content.value = currentPost.content || "";
+			$("#post-edit-form")[0].extra_content.value = currentPost.extra_content || "";
+			if ($("#post-edit-form")[0].status) {
+				$("#post-edit-form")[0].status.checked = Boolean(currentPost.status);
+			}
+			loadCategories(function () {
+				renderCategoryCheckboxes("edit-post-categories", categoriesSelected);
+				$("#post-edit-modal").addClass("is-open");
+			});
+		});
+
+		$("#post-edit-cancel").on("click", function () {
+			$("#post-edit-modal").removeClass("is-open");
+		});
+
+		$("#post-edit-form").on("submit", function (event) {
+			event.preventDefault();
+			if (!currentPost) {
+				return;
+			}
+			showEditMessage("");
+			var form = this;
+			var title = form.title.value.trim();
+			var content = form.content.value.trim();
+			if (!title || !content) {
+				showEditMessage("Title and content are required.");
+				return;
+			}
+			var selected = [];
+			$("#edit-post-categories input[type='checkbox']:checked").each(function () {
+				selected.push($(this).val());
+			});
+			if (!selected.length) {
+				showEditMessage("Select at least one category.");
+				return;
+			}
+			var formData = new FormData();
+			formData.append("title", title);
+			formData.append("content", content);
+			formData.append("extra_content", form.extra_content.value.trim());
+			if (form.status) {
+				formData.append("status", form.status.checked ? "true" : "false");
+			}
+			selected.forEach(function (name) {
+				formData.append("categories", name);
+			});
+			if (form.image.files[0]) {
+				formData.append("image", form.image.files[0]);
+			}
+			if (form.image_2.files[0]) {
+				formData.append("image_2", form.image_2.files[0]);
+			}
+			if (form.image_3.files[0]) {
+				formData.append("image_3", form.image_3.files[0]);
+			}
+			$.ajax({
+				url: apiUrl,
+				method: "PATCH",
+				headers: { "X-CSRFToken": csrfToken },
+				data: formData,
+				processData: false,
+				contentType: false,
+				success: function () {
+					showEditMessage("Post updated.", true);
+					setTimeout(function () {
+						window.location.reload();
+					}, 600);
+				},
+				error: function (xhr) {
+					var message = "Failed to update post.";
+					if (xhr.responseJSON) {
+						var parts = [];
+						Object.keys(xhr.responseJSON).forEach(function (key) {
+							var value = xhr.responseJSON[key];
+							if (Array.isArray(value)) {
+								parts.push(key + ": " + value.join(", "));
+							} else if (value) {
+								parts.push(key + ": " + value);
+							}
+						});
+						if (parts.length) {
+							message = parts.join(" | ");
+						}
+					}
+					showEditMessage(message);
+				}
+			});
+		});
+
+		$("#post-delete-btn").on("click", function () {
+			if (!currentPost) {
+				return;
+			}
+			$("#post-delete-modal").addClass("is-open");
+		});
+
+		$("#post-delete-cancel").on("click", function () {
+			$("#post-delete-modal").removeClass("is-open");
+		});
+
+		$("#post-delete-confirm").on("click", function () {
+			$.ajax({
+				url: apiUrl,
+				method: "DELETE",
+				headers: { "X-CSRFToken": csrfToken },
+				success: function () {
+					window.location.href = "{% url 'website:blog-home' %}";
+				},
+				error: function () {
+					showEditMessage("Failed to delete post.");
+				}
+			});
+		});
+
+		$("#comments-list").on("click", ".comment-edit", function (event) {
+			event.preventDefault();
+			var $comment = $(this).closest(".comment-item");
+			if ($comment.data("editing")) {
+				return;
+			}
+			clearCommentError($comment);
+			var currentText = $comment.find(".comment-body").text();
+			$comment.data("editing", true);
+			$comment.data("original", currentText);
+
+			var $textarea = $('<textarea class="comment-edit-text"></textarea>');
+			$textarea.val(currentText);
+			$comment.find(".comment-body").empty().append($textarea);
+
+			var $actions = $comment.find(".comment-actions");
+			$actions.find(".comment-reply, .comment-report, .comment-toggle, .comment-edit, .comment-delete").hide();
+			$actions.append('<a href="#" class="comment-save">Save</a><a href="#" class="comment-cancel">Cancel</a>');
+		});
+
+		$("#comments-list").on("click", ".comment-cancel", function (event) {
+			event.preventDefault();
+			var $comment = $(this).closest(".comment-item");
+			var original = $comment.data("original") || "";
+			$comment.find(".comment-body").text(original);
+			$comment.data("editing", false);
+			$comment.find(".comment-save, .comment-cancel").remove();
+			$comment.find(".comment-reply, .comment-report, .comment-toggle, .comment-edit, .comment-delete").show();
+			clearCommentError($comment);
+		});
+
+		$("#comments-list").on("click", ".comment-save", function (event) {
+			event.preventDefault();
+			var $comment = $(this).closest(".comment-item");
+			var commentId = $comment.data("id");
+			var message = $comment.find(".comment-edit-text").val().trim();
+			if (!message) {
+				showCommentError($comment, "Comment cannot be empty.");
+				return;
+			}
+			$.ajax({
+				url: commentsUrl + commentId + "/",
+				method: "PATCH",
+				headers: { "X-CSRFToken": csrfToken },
+				data: { message: message },
+				success: function () {
+					loadComments();
+				},
+				error: function () {
+					showCommentError($comment, "Failed to update comment.");
+				}
+			});
+		});
+
+		$("#comments-list").on("click", ".comment-delete", function (event) {
+			event.preventDefault();
+			var $comment = $(this).closest(".comment-item");
+			var commentId = $comment.data("id");
+			if (!window.confirm("Delete this comment and its replies?")) {
+				return;
+			}
+			$.ajax({
+				url: commentsUrl + commentId + "/",
+				method: "DELETE",
+				headers: { "X-CSRFToken": csrfToken },
+				success: function () {
+					loadComments();
+				},
+				error: function () {
+					showCommentError($comment, "Failed to delete comment.");
+				}
+			});
+		});
+
+		$("#comment-cancel-reply").on("click", function (event) {
+			event.preventDefault();
+			$("#comment-parent-id").val("");
+			$("#comment-cancel-reply").hide();
+		});
+
+		$("#comment-form").on("submit", function (event) {
+			event.preventDefault();
+			var message = $("#comment-message").val().trim();
+			if (!message) {
+				return;
+			}
+			var parentId = $("#comment-parent-id").val();
+			var payload = { post: postId, message: message };
+			if (parentId) {
+				payload.parent = parentId;
+			}
+			$.ajax({
+				url: commentsUrl,
+				method: "POST",
+				headers: { "X-CSRFToken": csrfToken },
+				data: payload,
+				success: function () {
+					$("#comment-message").val("");
+					$("#comment-parent-id").val("");
+					$("#comment-cancel-reply").hide();
+					loadComments();
+				}
+			});
+		});
+	});
+</script>
 
 {% endblock %}

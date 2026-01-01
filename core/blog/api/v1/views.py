@@ -1,5 +1,5 @@
 from rest_framework.decorators import api_view,permission_classes,action
-from rest_framework.permissions import IsAuthenticated,IsAuthenticatedOrReadOnly,IsAdminUser
+from rest_framework.permissions import IsAuthenticated,IsAuthenticatedOrReadOnly,IsAdminUser,AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.filters import SearchFilter,OrderingFilter
@@ -9,10 +9,10 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 from django.db.models import Count,F,Sum
 from django.utils import timezone
-from .serializers import PostSerializer,CategorySerializer
-from .permissions import IsOwnerOrReadOnly
+from .serializers import PostSerializer,CategorySerializer,CommentSerializer,CommentReportSerializer
+from .permissions import IsOwnerOrReadOnly, IsCommentOwnerOrReadOnly
 from .paginations import LargeResultsSetPagination
-from blog.models import Post,Category
+from blog.models import Post,Category,Comment,CommentReport
 from accounts.models import Profile
 
 #function based api for listing all the posts with permission classes and decorators!#
@@ -117,11 +117,31 @@ class PostModelViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly,IsOwnerOrReadOnly]
     serializer_class = PostSerializer
     pagination_class = LargeResultsSetPagination
-    queryset = Post.objects.all()
     filter_backends = [DjangoFilterBackend,SearchFilter,OrderingFilter]
     filterset_fields = ['categories','author','status']
     search_fields = ['title','content']
     ordering_fields = ['published_date']
+
+    def get_queryset(self):
+        qs = Post.objects.all()
+        user = getattr(self.request, "user", None)
+        if not user or not user.is_authenticated or not user.is_staff:
+            qs = qs.filter(status=True)
+        return qs
+
+    def perform_create(self, serializer):
+        user = getattr(self.request, "user", None)
+        if not user or not user.is_staff:
+            serializer.save(status=True)
+            return
+        serializer.save()
+
+    def perform_update(self, serializer):
+        user = getattr(self.request, "user", None)
+        if not user or not user.is_staff:
+            serializer.save(status=serializer.instance.status)
+            return
+        serializer.save()
 
     def retrieve(self, request, *args, **kwargs):#we use session based so user does not increase the views by refreshing!
         instance = self.get_object()
@@ -197,6 +217,22 @@ class CategoryModelViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
     serializer_class = CategorySerializer
     queryset = Category.objects.all()
+
+
+class CommentModelViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticatedOrReadOnly, IsCommentOwnerOrReadOnly]
+    serializer_class = CommentSerializer
+    queryset = Comment.objects.all()
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_fields = ["post", "parent", "author"]
+    ordering_fields = ["created_date"]
+    ordering = ["created_date"]
+
+
+class CommentReportViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
+    serializer_class = CommentReportSerializer
+    queryset = CommentReport.objects.all()
 
 
 

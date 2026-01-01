@@ -35,8 +35,8 @@ class RegistrationApiView(TokenForUserMixin,generics.GenericAPIView):
                                 'admin@admin.com',
                                 to=[email])
             EmailThread(email_obj).start()
-            return Response(data)
-        return Response(serializer.errors)
+            return Response(data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class CustomObtainAuthToken(ObtainAuthToken):
     serializer_class = CustomAuthTokenSerializer

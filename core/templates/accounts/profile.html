@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<style>
+	.profile-card {
+		background: #fff;
+		border-radius: 8px;
+		box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+		padding: 20px;
+	}
+
+	.profile-avatar {
+		width: 140px;
+		height: 140px;
+		border-radius: 50%;
+		object-fit: cover;
+		margin-bottom: 15px;
+	}
+
+	.profile-meta {
+		font-size: 14px;
+		color: #666;
+		margin-bottom: 8px;
+	}
+
+	.profile-error {
+		color: #d9534f;
+		font-size: 14px;
+		margin-top: 10px;
+	}
+
+	.profile-section {
+		padding-top: 200px;
+	}
+
+	#header {
+		background: rgba(34, 34, 34, 0.9);
+	}
+</style>
+
+<section class="section-gap profile-section">
+	<div class="container">
+		<div class="row justify-content-center">
+			<div class="col-lg-6">
+				<div class="profile-card text-center">
+					<img id="profile-image" class="profile-avatar" src="{% static 'img/blog/NoUser.jpg' %}" alt="Profile">
+
+					<h4 id="profile-name"></h4>
+					<div id="profile-email" class="profile-meta"></div>
+					<p id="profile-description">No bio yet.</p>
+					<div id="profile-error" class="profile-error" style="display:none;"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+
+<script>
+	window.addEventListener("load", function () {
+		if (!window.fetch) {
+			return;
+		}
+		var apiUrl = "{% url 'profile' %}";
+		var defaultImage = "{% static 'img/blog/NoUser.jpg' %}";
+
+		fetch(apiUrl, { credentials: "same-origin" })
+			.then(function (response) {
+				if (!response.ok) {
+					throw new Error("Failed to load profile.");
+				}
+				return response.json();
+			})
+			.then(function (data) {
+				var firstName = data.first_name || "";
+				var lastName = data.last_name || "";
+				var fullName = (firstName + " " + lastName).trim();
+				document.getElementById("profile-name").textContent = fullName || "Profile";
+				document.getElementById("profile-email").textContent = data.email || "";
+				document.getElementById("profile-description").textContent = data.description || "No bio yet.";
+				document.getElementById("profile-image").src = data.image || defaultImage;
+			})
+			.catch(function () {
+				var errorBox = document.getElementById("profile-error");
+				errorBox.textContent = "Could not load profile data.";
+				errorBox.style.display = "block";
+			});
+	});
+</script>
+{% endblock %}

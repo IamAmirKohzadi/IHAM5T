@@ -72,6 +72,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'website.context_processors.site_settings',#quote for blog-single!
             ],
         },
     },
@@ -187,3 +188,8 @@ EMAIL_PORT = 25
 EMAIL_HOST_USER = ''
 EMAIL_HOST_PASSWORD = ''
 EMAIL_USE_TLS = False
+
+
+#django contrib auth setting
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/"

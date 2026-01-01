@@ -39,6 +39,7 @@ class Command(BaseCommand):
                 author=profile,
                 title=self.fake.sentence(),
                 content=self.fake.paragraph(nb_sentences=10),
+                extra_content=self.fake.paragraph(nb_sentences=10),
                 status=random.choice([True, False]),
                 published_date=timezone.now(),
             )

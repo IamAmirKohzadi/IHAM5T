@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from django.views.generic import TemplateView
 
 class HomeView(TemplateView):
@@ -15,3 +14,7 @@ class NewsletterView(TemplateView):
 
 class BlogHome(TemplateView):
     template_name = "blogApi/blog-home.html"
+
+class BlogSingle(TemplateView):
+    template_name = "blogApi/blog-single.html"
+

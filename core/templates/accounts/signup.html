@@ -31,6 +31,7 @@
     }
 
     .login-box input[type="text"],
+    .login-box input[type="email"],
     .login-box input[type="password"] {
       width: 100%;
       padding: 10px;
@@ -77,20 +78,139 @@
     .login-box a:hover {
       text-decoration: underline;
     }
+
+    .form-errors {
+      margin-top: 10px;
+      font-size: 13px;
+      color: #d9534f;
+      text-align: left;
+    }
+
+    .form-errors ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .form-success {
+      margin-top: 10px;
+      font-size: 13px;
+      color: #2e7d32;
+    }
   </style>
 </head>
 <body>
   <div class="login-box">
     <h2>Signup here u MF!</h2>
-    <form method="post" action="{% url 'accounts:signup' %}">
-        {% csrf_token %}
-      
-        {{form.as_p}}
-      
-      
+    <form id="signup-form" method="post" action="{% url 'signup' %}">
+      {% csrf_token %}
+      <input type="email" name="email" placeholder="Email" required>
+      <input type="password" name="password" placeholder="Password" required>
+      <input type="password" name="password1" placeholder="Confirm Password" required>
       <button type="submit">Sign Up!</button>
     </form>
+    <div id="signup-success" class="form-success" style="display:none;"></div>
+    <div id="signup-errors" class="form-errors" style="display:none;"></div>
+    <a href="{% url 'login' %}">Already have an account? Login</a>
   </div>
+
+  <script>
+    function getCookie(name) {
+      var value = "; " + document.cookie;
+      var parts = value.split("; " + name + "=");
+      if (parts.length === 2) {
+        return parts.pop().split(";").shift();
+      }
+      return "";
+    }
+
+    function normalizeErrors(payload) {
+      if (!payload) {
+        return ["Signup failed. Please try again."];
+      }
+      if (typeof payload === "string") {
+        return [payload];
+      }
+      if (Array.isArray(payload)) {
+        return payload;
+      }
+      if (typeof payload === "object") {
+        var messages = [];
+        Object.keys(payload).forEach(function (key) {
+          var value = payload[key];
+          if (Array.isArray(value)) {
+            messages.push(key + ": " + value.join(", "));
+          } else if (value) {
+            messages.push(key + ": " + value);
+          }
+        });
+        if (messages.length) {
+          return messages;
+        }
+      }
+      return ["Signup failed. Please try again."];
+    }
+
+    function showErrors(messages) {
+      var errorsBox = document.getElementById("signup-errors");
+      errorsBox.innerHTML = "";
+      if (!messages || !messages.length) {
+        errorsBox.style.display = "none";
+        return;
+      }
+      var list = document.createElement("ul");
+      messages.forEach(function (msg) {
+        var item = document.createElement("li");
+        item.textContent = msg;
+        list.appendChild(item);
+      });
+      errorsBox.appendChild(list);
+      errorsBox.style.display = "block";
+    }
+
+    function showSuccess(message) {
+      var successBox = document.getElementById("signup-success");
+      successBox.textContent = message || "";
+      if (message) {
+        successBox.style.display = "block";
+      } else {
+        successBox.style.display = "none";
+      }
+    }
+
+    var signupForm = document.getElementById("signup-form");
+    signupForm.addEventListener("submit", function (event) {
+      event.preventDefault();
+      showErrors([]);
+      showSuccess("");
+
+      var data = new URLSearchParams();
+      data.append("email", signupForm.email.value);
+      data.append("password", signupForm.password.value);
+      data.append("password1", signupForm.password1.value);
+
+      fetch(signupForm.action, {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": getCookie("csrftoken"),
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: data
+      }).then(function (response) {
+        return response.json().then(function (payload) {
+          return { ok: response.ok, payload: payload };
+        });
+      }).then(function (result) {
+        if (result.ok) {
+          showSuccess("Account created. Check your email to activate.");
+          signupForm.reset();
+        } else {
+          showErrors(normalizeErrors(result.payload));
+        }
+      }).catch(function () {
+        showErrors(["Signup failed. Please try again."]);
+      });
+    });
+  </script>
 </body>
 </html>
 

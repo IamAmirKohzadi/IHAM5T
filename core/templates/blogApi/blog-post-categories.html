@@ -2,14 +2,26 @@
 
 <div class="single-sidebar-widget post-category-widget">
     <h4 class="category-title">Post Catgories</h4>
-    <ul class="cat-list">
-        {% for name,count in categories.items %}
-        <li>
-            <a href="{% url 'blog:category' cat_name=name %}" class="d-flex justify-content-between">
-                <p>{{name}}</p>
-                <p>{{count}}</p>
-            </a>
-        </li>
-        {% endfor %}
-    </ul>
+    <ul class="cat-list" id="post-category-list"></ul>
 </div>
+<script>
+    window.addEventListener('load', function () {
+        if (!window.jQuery) {
+            return;
+        }
+        $.getJSON("{% url 'blog:api-v1:category-list' %}", function (data) {
+            var categories = data.results || data;
+            var $list = $("#post-category-list");
+            $list.empty();
+
+            categories.forEach(function (cat) {
+                var link = "{% url 'website:blog-home' %}?categories=" + encodeURIComponent(cat.id);
+                $list.append(
+                    '<li><a href="' + link + '" class="d-flex justify-content-between"><p>' +
+                    cat.name +
+                    '</p></a></li>'
+                );
+            });
+        });
+    });
+</script>

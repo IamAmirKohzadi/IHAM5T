@@ -82,20 +82,16 @@
 <body>
   <div class="login-box">
     <h2>Login</h2>
-    <form method="post">
-        {% csrf_token %}
-      
-        {{form.as_p}}
-      
+    <form method="post" action="{% url 'login' %}">
+      {% csrf_token %}
+      {{ form.as_p }}
       <div class="remember">
         <input type="checkbox" id="remember">
         <label for="remember">Remember Me</label>
       </div>
-      
       <button type="submit">Login</button>
-      <a href="#">Forgot Password?</a>
+      <a href="{% url 'password_reset' %}">Forgot Password?</a>
     </form>
   </div>
 </body>
 </html>
-

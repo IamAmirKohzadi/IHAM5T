@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Post,Category
+from .models import Category, Comment, CommentReport, Post
 # Register your models here.
 
 class PostAdmin(admin.ModelAdmin):
@@ -13,3 +13,19 @@ class PostAdmin(admin.ModelAdmin):
     
 admin.site.register(Post,PostAdmin)
 admin.site.register(Category)
+
+
+class CommentAdmin(admin.ModelAdmin):
+    list_display = ["id", "post", "author", "name", "depth", "is_approved", "created_date"]
+    list_filter = ["is_approved", "depth", "created_date"]
+    search_fields = ["message", "name", "post__title"]
+
+
+class CommentReportAdmin(admin.ModelAdmin):
+    list_display = ["id", "comment", "reporter", "status", "created_date"]
+    list_filter = ["status", "created_date"]
+    search_fields = ["reason", "comment__message"]
+
+
+admin.site.register(Comment, CommentAdmin)
+admin.site.register(CommentReport, CommentReportAdmin)
