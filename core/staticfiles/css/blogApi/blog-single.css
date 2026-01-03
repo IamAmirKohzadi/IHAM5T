@@ -1,0 +1,364 @@
+.user-info-widget .social-disabled,
+	.single-post .social-disabled {
+		pointer-events: none;
+		opacity: 0.4;
+	}
+
+	.nav-hidden {
+		visibility: hidden;
+		pointer-events: none;
+	}
+
+	.post-gallery-img {
+		width: 100%;
+		height: 240px;
+		object-fit: cover;
+		display: block;
+	}
+
+	.nav-thumb-img {
+		width: 60px;
+		height: 60px;
+		object-fit: cover;
+		background: #fff;
+		padding: 4px;
+		border-radius: 4px;
+		display: block;
+	}
+
+	.comment-item {
+		margin-bottom: 20px;
+	}
+
+	.comment-meta {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		background: #f7f7f7;
+		border: 1px solid #eee;
+		border-radius: 14px;
+		padding: 4px 10px;
+		font-size: 13px;
+		color: #777;
+		margin-bottom: 6px;
+	}
+
+	.comment-body {
+		font-size: 16px;
+		line-height: 1.6;
+	}
+
+	.comment-actions a {
+		margin-right: 12px;
+		cursor: pointer;
+		font-size: 12px;
+		color: #777;
+	}
+
+	.comment-actions .comment-delete {
+		color: #b94a48;
+	}
+
+	.post-report-link {
+		font-size: 12px;
+		color: #777;
+	}
+
+	.post-report-link:hover {
+		color: #d9534f;
+	}
+
+	.post-reactions {
+		display: inline-flex;
+		gap: 10px;
+		align-items: center;
+	}
+
+	.post-reaction {
+		font-size: 14px;
+		color: #777;
+		text-decoration: none;
+	}
+
+	.post-reaction i {
+		font-size: 16px;
+	}
+
+	.post-reaction.active {
+		color: #0b5ed7;
+		font-weight: 600;
+	}
+
+	.post-reaction-message {
+		font-size: 12px;
+		color: #d9534f;
+		margin-top: 6px;
+	}
+
+	.comment-edit-text {
+		width: 100%;
+		min-height: 90px;
+		border: 1px solid #ddd;
+		border-radius: 4px;
+		padding: 8px;
+		font-size: 14px;
+	}
+
+	.comment-edit-error {
+		display: block;
+		margin-top: 6px;
+		font-size: 12px;
+		color: #d9534f;
+	}
+
+	.comment-form-message {
+		font-size: 12px;
+		color: #d9534f;
+		margin-top: 8px;
+	}
+
+	.comment-verify-note {
+		font-size: 12px;
+		color: #856404;
+		background: #fff3cd;
+		border: 1px solid #ffeeba;
+		border-radius: 6px;
+		padding: 8px;
+		margin-bottom: 8px;
+	}
+
+	.comment-rules {
+		background: #f8f9fb;
+		border: 1px solid #eee;
+		border-radius: 8px;
+		padding: 12px;
+		margin-bottom: 14px;
+		font-size: 12px;
+		color: #666;
+	}
+
+	.comment-rules ul {
+		margin: 6px 0 0;
+		padding-left: 16px;
+	}
+
+	.report-modal {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: rgba(0, 0, 0, 0.45);
+		display: none;
+		align-items: center;
+		justify-content: center;
+		z-index: 1100;
+	}
+
+	.report-modal.is-open {
+		display: flex;
+	}
+
+	.report-card {
+		background: #fff;
+		border-radius: 8px;
+		padding: 16px;
+		width: 320px;
+		box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+	}
+
+	.report-card h5 {
+		margin-bottom: 10px;
+	}
+
+	.report-card textarea {
+		width: 100%;
+		min-height: 90px;
+		border: 1px solid #ddd;
+		border-radius: 4px;
+		padding: 8px;
+		font-size: 14px;
+	}
+
+	.report-actions {
+		margin-top: 10px;
+		display: flex;
+		justify-content: flex-end;
+		gap: 8px;
+	}
+
+	.report-message {
+		margin-top: 8px;
+		font-size: 13px;
+		color: #d9534f;
+	}
+
+	.report-message.success {
+		color: #2e7d32;
+	}
+
+	.post-actions {
+		display: flex;
+		gap: 10px;
+		margin-bottom: 20px;
+	}
+
+	.post-actions button {
+		flex: 1;
+		border-radius: 20px;
+	}
+
+	.post-actions .post-delete-btn {
+		background: #d9534f;
+	}
+
+	.post-modal {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: rgba(0, 0, 0, 0.45);
+		display: none;
+		align-items: center;
+		justify-content: center;
+		z-index: 1100;
+	}
+
+	.post-modal.is-open {
+		display: flex;
+	}
+
+	.post-modal-card {
+		background: #fff;
+		border-radius: 8px;
+		padding: 16px;
+		width: 720px;
+		max-width: 90vw;
+		box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+	}
+
+	.post-modal-card input[type="text"],
+	.post-modal-card textarea,
+	.post-modal-card input[type="file"] {
+		width: 100%;
+		border: 1px solid #ddd;
+		border-radius: 4px;
+		padding: 8px;
+		margin-bottom: 8px;
+		font-size: 14px;
+	}
+
+	.post-modal-row {
+		margin-bottom: 8px;
+		text-align: left;
+		font-size: 14px;
+		color: #555;
+	}
+
+	.post-modal-categories label {
+		display: block;
+		margin-bottom: 4px;
+	}
+
+	.post-modal-actions {
+		display: flex;
+		justify-content: flex-end;
+		gap: 8px;
+	}
+
+	.post-modal-message {
+		font-size: 13px;
+		color: #d9534f;
+		margin-bottom: 8px;
+	}
+
+	.post-modal-message.success {
+		color: #2e7d32;
+	}
+
+	.post-delete-modal {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: rgba(0, 0, 0, 0.45);
+		display: none;
+		align-items: center;
+		justify-content: center;
+		z-index: 1100;
+	}
+
+	.post-delete-modal.is-open {
+		display: flex;
+	}
+
+	.post-delete-card {
+		background: #fff;
+		border-radius: 8px;
+		padding: 16px;
+		width: 300px;
+		box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+		text-align: center;
+	}
+
+	.post-delete-card p {
+		margin-bottom: 12px;
+	}
+
+	.comments-area {
+		background: #fff;
+		border-radius: 8px;
+		box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+		padding: 20px;
+	}
+
+	.comments-head {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 12px;
+	}
+
+	.comments-count {
+		font-size: 12px;
+		color: #777;
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+	}
+
+	.comment-children {
+		margin-left: 30px;
+		padding-left: 10px;
+		border-left: 2px solid #eee;
+	}
+
+	.comment-children.is-collapsed {
+		display: none;
+	}
+
+	.friend-request-btn {
+		border: 1px solid #0b5ed7;
+		background: #0b5ed7;
+		color: #fff;
+		border-radius: 999px;
+		padding: 6px 12px;
+		font-size: 12px;
+		cursor: pointer;
+	}
+
+	.friend-request-btn[disabled] {
+		background: #e9ecef;
+		border-color: #e9ecef;
+		color: #666;
+		cursor: not-allowed;
+	}
+
+	.friend-request-status {
+		display: block;
+		font-size: 11px;
+		color: #777;
+		margin-top: 6px;
+	}

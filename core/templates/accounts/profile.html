@@ -1,456 +1,23 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
-<style>
-	.profile-section {
-		padding: 140px 0 80px;
-		background: #f5f6f8;
-	}
-
-	#header {
-		background: rgba(34, 34, 34, 0.9);
-	}
-
-	.profile-panel {
-		background: #fff;
-		border-radius: 14px;
-		box-shadow: 0 10px 30px rgba(34, 34, 34, 0.08);
-		padding: 24px;
-	}
-
-	.profile-sidebar {
-		align-self: flex-start;
-	}
-
-	.profile-panel-header {
-		display: flex;
-		align-items: flex-start;
-		justify-content: space-between;
-		gap: 16px;
-		margin-bottom: 20px;
-	}
-
-	.profile-panel-title {
-		font-size: 22px;
-		font-weight: 600;
-		margin: 0;
-		color: #222;
-	}
-
-	.profile-panel-subtitle {
-		margin: 6px 0 0;
-		font-size: 13px;
-		color: #777;
-	}
-
-	.profile-stats {
-		text-align: right;
-		font-size: 13px;
-		color: #666;
-	}
-
-	.profile-stats span {
-		display: block;
-		font-weight: 600;
-		color: #222;
-	}
-
-	.profile-posts {
-		display: flex;
-		flex-direction: column;
-		gap: 14px;
-	}
-
-	.profile-post-row {
-		border: 1px solid #eee;
-		border-radius: 12px;
-		padding: 14px 16px;
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 14px;
-	}
-
-	.profile-post-info {
-		flex: 1;
-		min-width: 0;
-	}
-
-	.profile-post-title {
-		font-size: 16px;
-		font-weight: 600;
-		color: #222;
-		text-decoration: none;
-		display: inline-block;
-	}
-
-	.profile-post-title:hover {
-		color: #0b5ed7;
-	}
-
-	.profile-post-title.is-disabled {
-		color: #888;
-		cursor: default;
-	}
-
-	.profile-post-excerpt {
-		font-size: 13px;
-		color: #666;
-		margin: 6px 0 0;
-	}
-
-	.profile-post-meta {
-		display: flex;
-		align-items: center;
-		flex-wrap: wrap;
-		gap: 8px;
-		font-size: 12px;
-		color: #999;
-		margin-top: 6px;
-	}
-
-	.profile-post-status {
-		padding: 2px 8px;
-		border-radius: 999px;
-		font-size: 11px;
-		border: 1px solid transparent;
-	}
-
-	.profile-post-status.pending {
-		background: #fff3cd;
-		border-color: #ffeeba;
-		color: #856404;
-	}
-
-	.profile-post-status.approved {
-		background: #e7f5ff;
-		border-color: #d0ebff;
-		color: #0b5ed7;
-	}
-
-	.profile-post-actions {
-		display: flex;
-		gap: 8px;
-		align-items: center;
-		flex-shrink: 0;
-	}
-
-	.profile-post-action {
-		border: 1px solid #ddd;
-		background: #fff;
-		color: #333;
-		font-size: 12px;
-		padding: 6px 14px;
-		border-radius: 999px;
-		cursor: pointer;
-		text-decoration: none;
-		transition: all 0.2s ease;
-	}
-
-	.profile-post-action:hover {
-		border-color: #0b5ed7;
-		color: #0b5ed7;
-	}
-
-	.profile-post-action.is-danger {
-		border-color: #f5c2c7;
-		color: #a94442;
-	}
-
-	.profile-post-action.is-danger:hover {
-		border-color: #dc3545;
-		color: #dc3545;
-	}
-
-	.profile-empty {
-		padding: 16px;
-		border-radius: 12px;
-		background: #f8f9fb;
-		color: #777;
-		font-size: 14px;
-		text-align: center;
-	}
-
-	.profile-avatar {
-		width: 140px;
-		height: 140px;
-		border-radius: 50%;
-		object-fit: cover;
-		border: 4px solid #fff;
-		box-shadow: 0 8px 20px rgba(34, 34, 34, 0.12);
-	}
-
-	.profile-avatar-wrap {
-		display: flex;
-		justify-content: center;
-		margin-bottom: 18px;
-	}
-
-	.profile-name {
-		text-align: center;
-		font-size: 20px;
-		font-weight: 600;
-		margin-bottom: 6px;
-	}
-
-	.profile-meta {
-		text-align: center;
-		font-size: 13px;
-		color: #666;
-		margin-bottom: 12px;
-	}
-
-	.profile-desc {
-		font-size: 14px;
-		color: #555;
-		text-align: center;
-		margin-bottom: 16px;
-	}
-
-	.profile-divider {
-		height: 1px;
-		background: #eee;
-		margin: 16px 0;
-	}
-
-	.profile-report-button {
-		width: 100%;
-		border: 1px solid #e2e2e2;
-		background: #f8f9fb;
-		border-radius: 999px;
-		padding: 8px 12px;
-		font-size: 13px;
-		color: #333;
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		cursor: pointer;
-	}
-
-	.profile-report-button:hover {
-		border-color: #0b5ed7;
-		color: #0b5ed7;
-	}
-
-	.profile-report-count {
-		background: #0b5ed7;
-		color: #fff;
-		border-radius: 999px;
-		padding: 2px 10px;
-		font-size: 12px;
-	}
-
-	.profile-edit-button {
-		width: 100%;
-		border: none;
-		background: #0b5ed7;
-		color: #fff;
-		border-radius: 999px;
-		padding: 10px 12px;
-		font-size: 13px;
-		cursor: pointer;
-	}
-
-	.profile-edit-button:hover {
-		background: #0a53be;
-	}
-
-	.profile-edit-form input,
-	.profile-edit-form textarea {
-		width: 100%;
-		border: 1px solid #ddd;
-		border-radius: 6px;
-		padding: 8px;
-		font-size: 13px;
-		margin-bottom: 10px;
-	}
-
-	.profile-edit-form label {
-		font-size: 12px;
-		color: #666;
-		margin-bottom: 4px;
-		display: block;
-	}
-
-	.profile-edit-message {
-		font-size: 12px;
-		color: #d9534f;
-		margin-bottom: 10px;
-	}
-
-	.profile-edit-message.success {
-		color: #2e7d32;
-	}
-
-	.profile-report-card {
-		max-width: 520px;
-		text-align: left;
-	}
-
-	.profile-report-list {
-		margin-top: 14px;
-		max-height: 260px;
-		overflow-y: auto;
-	}
-
-	.profile-report-item {
-		border: 1px solid #eee;
-		border-radius: 10px;
-		padding: 10px 12px;
-		margin-bottom: 10px;
-		font-size: 13px;
-		color: #555;
-	}
-
-	.profile-report-type {
-		font-size: 11px;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-		color: #999;
-		margin-bottom: 6px;
-	}
-
-	.profile-report-link {
-		color: #0b5ed7;
-		text-decoration: none;
-	}
-
-	.profile-report-link:hover {
-		text-decoration: underline;
-	}
-
-	.profile-report-reason {
-		margin-top: 6px;
-		color: #777;
-	}
-
-	.profile-report-empty {
-		padding: 12px;
-		border-radius: 10px;
-		background: #f8f9fb;
-		color: #777;
-		font-size: 13px;
-		text-align: center;
-	}
-
-
-	.profile-info-list {
-		list-style: none;
-		padding: 0;
-		margin: 0;
-		font-size: 13px;
-		color: #666;
-	}
-
-	.profile-info-list li {
-		display: flex;
-		justify-content: space-between;
-		margin-bottom: 10px;
-	}
-
-	.profile-info-list strong {
-		color: #222;
-		font-weight: 600;
-	}
-
-	.profile-social {
-		display: flex;
-		justify-content: center;
-		gap: 12px;
-		margin-top: 14px;
-	}
-
-	.profile-social a {
-		width: 34px;
-		height: 34px;
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		border-radius: 50%;
-		background: #f5f5f5;
-		color: #555;
-		text-decoration: none;
-		transition: all 0.2s ease;
-	}
-
-	.profile-social a:hover {
-		background: #0b5ed7;
-		color: #fff;
-	}
-
-	.profile-social a.is-disabled {
-		opacity: 0.4;
-		pointer-events: none;
-	}
-
-	.profile-error {
-		color: #d9534f;
-		font-size: 14px;
-		margin-top: 10px;
-		text-align: center;
-	}
-
-	.profile-modal {
-		position: fixed;
-		inset: 0;
-		background: rgba(0, 0, 0, 0.5);
-		display: none;
-		align-items: center;
-		justify-content: center;
-		z-index: 10000;
-		padding: 20px;
-	}
-
-	.profile-modal-card {
-		background: #fff;
-		border-radius: 14px;
-		padding: 24px;
-		max-width: 420px;
-		width: 100%;
-		text-align: center;
-		box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
-	}
-
-	.profile-modal-actions {
-		display: flex;
-		gap: 12px;
-		justify-content: center;
-		margin-top: 18px;
-	}
-
-	.profile-modal-button {
-		border: none;
-		padding: 8px 18px;
-		border-radius: 999px;
-		font-size: 13px;
-		cursor: pointer;
-	}
-
-	.profile-modal-button.confirm {
-		background: #dc3545;
-		color: #fff;
-	}
-
-	.profile-modal-button.cancel {
-		background: #e9ecef;
-		color: #333;
-	}
-
-	@media (max-width: 991px) {
-		.profile-section {
-			padding-top: 120px;
-		}
-
-		.profile-panel-header {
-			flex-direction: column;
-			align-items: flex-start;
-		}
-
-		.profile-stats {
-			text-align: left;
-		}
-	}
-</style>
+<link rel="stylesheet" href="{% static 'css/accounts/profile.css' %}">
+<div id="profile-config"
+	data-api-url="{% url 'profile' %}"
+	data-default-image="{% static 'img/blog/NoUser.jpg' %}"
+	data-posts-url-base="{% url 'blog:api-v1:post-list' %}"
+	data-post-detail-template="{% url 'website:blog-single' 0 %}"
+	data-post-delete-template="{% url 'blog:api-v1:post-detail' 0 %}"
+	data-change-password-url="{% url 'change-password' %}"
+	data-resend-activation-url="{% url 'activation-resend' %}"
+	data-comment-report-url="{% url 'blog:api-v1:comment-report-list' %}?status=approved"
+	data-post-report-url="{% url 'blog:api-v1:post-report-list' %}?status=approved"
+	data-friends-url="{% url 'friends:api-v1:friendship-list' %}"
+	data-friend-remove-template="{% url 'friends:api-v1:friendship-remove' 0 %}"
+	data-friend-requests-url="{% url 'friends:api-v1:friend-request-list' %}"
+	data-friend-request-accept-template="{% url 'friends:api-v1:friend-request-accept' 0 %}"
+	data-friend-request-decline-template="{% url 'friends:api-v1:friend-request-decline' 0 %}"
+	style="display:none;"></div>
 
 <section class="section-gap profile-section">
 	<div class="container">
@@ -481,6 +48,14 @@
 						<img id="profile-image" class="profile-avatar" src="{% static 'img/blog/NoUser.jpg' %}" alt="Profile">
 					</div>
 					<h4 id="profile-name" class="profile-name"></h4>
+					{% if request.user.is_authenticated and request.user.is_verified %}
+					<div class="profile-verified-wrap">
+						<div class="profile-verified">
+							<i class="fa fa-check-circle" aria-hidden="true"></i>
+							<span>Verified user</span>
+						</div>
+					</div>
+					{% endif %}
 					<div id="profile-email" class="profile-meta"></div>
 					<p id="profile-description" class="profile-desc">No bio yet.</p>
 					<div class="profile-divider"></div>
@@ -491,12 +66,29 @@
 					<div class="profile-divider"></div>
 					<button id="profile-edit-button" class="profile-edit-button" type="button">Edit profile</button>
 					<div id="profile-edit-error" class="profile-error" style="display:none;"></div>
+					<button id="profile-password-button" class="profile-password-button" type="button">Change password</button>
+					{% if request.user.is_authenticated and not request.user.is_verified %}
+					<button id="profile-resend-button" class="profile-resend-button" type="button">Resend verification</button>
+					<div id="profile-resend-message" class="profile-resend-message" style="display:none;"></div>
+					{% endif %}
 					<div class="profile-divider"></div>
 					<button id="profile-report-button" class="profile-report-button" type="button">
 						<span>Approved reports</span>
 						<span id="profile-report-count" class="profile-report-count">0</span>
 					</button>
 					<div id="profile-report-error" class="profile-error" style="display:none;"></div>
+					<div class="profile-divider"></div>
+					<button id="profile-friends-button" class="profile-friends-button" type="button">
+						<span>Friends</span>
+						<span id="profile-friends-count" class="profile-friends-count">0</span>
+					</button>
+					<div id="profile-friends-error" class="profile-error" style="display:none;"></div>
+					<div class="profile-divider"></div>
+					<button id="profile-requests-button" class="profile-requests-button" type="button">
+						<span>Friend requests</span>
+						<span id="profile-requests-count" class="profile-requests-count">0</span>
+					</button>
+					<div id="profile-requests-error" class="profile-error" style="display:none;"></div>
 					<div class="profile-divider"></div>
 					<div class="profile-social">
 						<a id="profile-facebook" href="#" target="_blank" rel="noopener"><i class="fa fa-facebook"></i></a>
@@ -533,6 +125,27 @@
 	</div>
 </div>
 
+<div id="profile-friends-modal" class="profile-modal">
+	<div class="profile-modal-card profile-report-card">
+		<h4>Your friends</h4>
+		<div id="profile-friends-list" class="profile-friends-list"></div>
+		<div id="profile-friends-empty" class="profile-friends-empty" style="display:none;">No friends yet.</div>
+		<div class="profile-modal-actions">
+			<button id="profile-friends-close" class="profile-modal-button cancel" type="button">Close</button>
+		</div>
+	</div>
+</div>
+
+<div id="profile-requests-modal" class="profile-modal">
+	<div class="profile-modal-card profile-report-card">
+		<h4>Friend requests</h4>
+		<div id="profile-requests-list" class="profile-requests-list"></div>
+		<div id="profile-requests-empty" class="profile-requests-empty" style="display:none;">No pending requests.</div>
+		<div class="profile-modal-actions">
+			<button id="profile-requests-close" class="profile-modal-button cancel" type="button">Close</button>
+		</div>
+	</div>
+</div>
 <div id="profile-edit-modal" class="profile-modal">
 	<div class="profile-modal-card profile-report-card">
 		<h4>Edit profile</h4>
@@ -562,504 +175,22 @@
 	</div>
 </div>
 
-<script>
-	window.addEventListener("load", function () {
-		if (!window.fetch) {
-			return;
-		}
-		var apiUrl = "{% url 'profile' %}";
-		var defaultImage = "{% static 'img/blog/NoUser.jpg' %}";
-		var postsUrlBase = "{% url 'blog:api-v1:post-list' %}";
-		var postDetailTemplate = "{% url 'website:blog-single' 0 %}";
-		var postDeleteTemplate = "{% url 'blog:api-v1:post-detail' 0 %}";
-		var commentReportUrl = "{% url 'blog:api-v1:comment-report-list' %}?status=approved";
-		var postReportUrl = "{% url 'blog:api-v1:post-report-list' %}?status=approved";
-		var postsCache = [];
-		var reportsCache = [];
-		var profileData = null;
-		var pendingDeleteId = null;
+<div id="profile-password-modal" class="profile-modal">
+	<div class="profile-modal-card profile-report-card">
+		<h4>Change password</h4>
+		<form id="profile-password-form" class="profile-password-form">
+			<input id="password-old" type="password" name="old_password" placeholder="Current password" required>
+			<input id="password-new" type="password" name="new_password" placeholder="New password" required>
+			<input id="password-new-confirm" type="password" name="new_password1" placeholder="Confirm new password"
+				required>
+			<div id="profile-password-message" class="profile-password-message" style="display:none;"></div>
+			<div class="profile-modal-actions">
+				<button id="profile-password-cancel" class="profile-modal-button cancel" type="button">Cancel</button>
+				<button id="profile-password-save" class="profile-modal-button confirm" type="submit">Save</button>
+			</div>
+		</form>
+	</div>
+</div>
 
-		function formatDateTime(value) {
-			if (!value) {
-				return "";
-			}
-			var parsed = new Date(value);
-			if (Number.isNaN(parsed.getTime())) {
-				return "";
-			}
-			return parsed.toLocaleString();
-		}
-
-		function applyProfileData(data) {
-			var firstName = data.first_name || "";
-			var lastName = data.last_name || "";
-			var fullName = (firstName + " " + lastName).trim();
-			document.getElementById("profile-name").textContent = fullName || "Profile";
-			document.getElementById("profile-email").textContent = data.email || "";
-			document.getElementById("profile-description").textContent = data.description || "No bio yet.";
-			document.getElementById("profile-image").src = data.image || defaultImage;
-			document.getElementById("profile-created").textContent = formatDateTime(data.created_date) || "-";
-			document.getElementById("profile-updated").textContent = formatDateTime(data.updated_date) || "-";
-
-			var facebook = document.getElementById("profile-facebook");
-			var twitter = document.getElementById("profile-twitter");
-			var github = document.getElementById("profile-github");
-			var behance = document.getElementById("profile-behance");
-
-			if (data.facebook_url) {
-				facebook.href = data.facebook_url;
-				facebook.classList.remove("is-disabled");
-			} else {
-				facebook.classList.add("is-disabled");
-			}
-
-			if (data.twitter_url) {
-				twitter.href = data.twitter_url;
-				twitter.classList.remove("is-disabled");
-			} else {
-				twitter.classList.add("is-disabled");
-			}
-
-			if (data.github_url) {
-				github.href = data.github_url;
-				github.classList.remove("is-disabled");
-			} else {
-				github.classList.add("is-disabled");
-			}
-
-			if (data.behance_url) {
-				behance.href = data.behance_url;
-				behance.classList.remove("is-disabled");
-			} else {
-				behance.classList.add("is-disabled");
-			}
-		}
-
-		function buildDetailUrl(postId) {
-			return postDetailTemplate.replace("/0/", "/" + postId + "/");
-		}
-
-		function buildDeleteUrl(postId) {
-			return postDeleteTemplate.replace("/0/", "/" + postId + "/");
-		}
-
-		function getCookie(name) {
-			var cookieValue = null;
-			if (document.cookie && document.cookie !== "") {
-				var cookies = document.cookie.split(";");
-				for (var i = 0; i < cookies.length; i += 1) {
-					var cookie = cookies[i].trim();
-					if (cookie.substring(0, name.length + 1) === (name + "=")) {
-						cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-						break;
-					}
-				}
-			}
-			return cookieValue;
-		}
-
-		function updateCounts() {
-			var totalViews = postsCache.reduce(function (sum, post) {
-				return sum + (parseInt(post.counted_view, 10) || 0);
-			}, 0);
-			document.getElementById("profile-post-count").textContent = postsCache.length;
-			document.getElementById("profile-view-count").textContent = totalViews;
-		}
-
-		function renderPosts(posts) {
-			var list = document.getElementById("profile-posts");
-			var empty = document.getElementById("profile-posts-empty");
-			var errorBox = document.getElementById("profile-posts-error");
-			list.innerHTML = "";
-			errorBox.style.display = "none";
-
-			postsCache = posts.slice();
-			updateCounts();
-
-			if (!postsCache.length) {
-				empty.textContent = "No posts yet.";
-				empty.style.display = "block";
-				return;
-			}
-
-			empty.style.display = "none";
-
-			postsCache.forEach(function (post) {
-				var row = document.createElement("div");
-				row.className = "profile-post-row";
-
-				var info = document.createElement("div");
-				info.className = "profile-post-info";
-
-				var isApproved = Boolean(post.status);
-				var title;
-				if (isApproved) {
-					title = document.createElement("a");
-					title.className = "profile-post-title";
-					title.href = buildDetailUrl(post.id);
-				} else {
-					title = document.createElement("span");
-					title.className = "profile-post-title is-disabled";
-				}
-				title.textContent = post.title || "Untitled post";
-
-				var excerpt = document.createElement("div");
-				excerpt.className = "profile-post-excerpt";
-				excerpt.textContent = post.excerpt || "";
-
-				var meta = document.createElement("div");
-				meta.className = "profile-post-meta";
-				var created = formatDateTime(post.created_date);
-				if (created) {
-					meta.appendChild(document.createTextNode("Created " + created));
-				}
-				var statusBadge = document.createElement("span");
-				statusBadge.className = "profile-post-status " + (post.status ? "approved" : "pending");
-				statusBadge.textContent = post.status ? "Approved" : "Pending approval";
-				meta.appendChild(statusBadge);
-
-				info.appendChild(title);
-				if (excerpt.textContent) {
-					info.appendChild(excerpt);
-				}
-				if (meta.childNodes.length) {
-					info.appendChild(meta);
-				}
-
-				var actions = document.createElement("div");
-				actions.className = "profile-post-actions";
-
-				if (isApproved) {
-					var openLink = document.createElement("a");
-					openLink.className = "profile-post-action";
-					openLink.href = buildDetailUrl(post.id);
-					openLink.textContent = "Open";
-					actions.appendChild(openLink);
-				}
-
-				if (post.can_edit) {
-					var deleteButton = document.createElement("button");
-					deleteButton.type = "button";
-					deleteButton.className = "profile-post-action is-danger";
-					deleteButton.textContent = "Delete";
-					deleteButton.addEventListener("click", function () {
-						openDeleteModal(post.id);
-					});
-					actions.appendChild(deleteButton);
-				}
-
-				row.appendChild(info);
-				row.appendChild(actions);
-				list.appendChild(row);
-			});
-		}
-
-		function renderPostsError(message) {
-			var errorBox = document.getElementById("profile-posts-error");
-			var empty = document.getElementById("profile-posts-empty");
-			errorBox.textContent = message;
-			errorBox.style.display = "block";
-			empty.style.display = "none";
-		}
-
-		function fetchAllPosts(url, collected, onSuccess, onError) {
-			fetch(url, { credentials: "same-origin" })
-				.then(function (response) {
-					if (!response.ok) {
-						throw new Error("Failed to load posts.");
-					}
-					return response.json();
-				})
-				.then(function (data) {
-					var results = data.results || data;
-					var updated = collected.concat(results || []);
-					if (data.links && data.links.next) {
-						fetchAllPosts(data.links.next, updated, onSuccess, onError);
-						return;
-					}
-					onSuccess(updated);
-				})
-				.catch(function () {
-					onError("Could not load posts.");
-				});
-		}
-
-		function fetchAllItems(url, collected, onSuccess, onError) {
-			fetch(url, { credentials: "same-origin" })
-				.then(function (response) {
-					if (!response.ok) {
-						throw new Error("Failed to load data.");
-					}
-					return response.json();
-				})
-				.then(function (data) {
-					var results = data.results || data;
-					if (!Array.isArray(results)) {
-						results = [];
-					}
-					var updated = collected.concat(results);
-					if (data.links && data.links.next) {
-						fetchAllItems(data.links.next, updated, onSuccess, onError);
-						return;
-					}
-					onSuccess(updated);
-				})
-				.catch(function () {
-					onError("Could not load report data.");
-				});
-		}
-
-		function renderReportList(items) {
-			var list = document.getElementById("profile-report-list");
-			var empty = document.getElementById("profile-report-empty");
-			list.innerHTML = "";
-			document.getElementById("profile-report-count").textContent = items.length;
-			if (!items.length) {
-				empty.style.display = "block";
-				return;
-			}
-			empty.style.display = "none";
-			items.forEach(function (item) {
-				var row = document.createElement("div");
-				row.className = "profile-report-item";
-
-				var type = document.createElement("div");
-				type.className = "profile-report-type";
-				type.textContent = item.type === "comment" ? "Comment report" : "Post report";
-
-				var title = document.createElement("div");
-				if (item.post_id) {
-					var link = document.createElement("a");
-					link.className = "profile-report-link";
-					link.href = buildDetailUrl(item.post_id);
-					link.textContent = item.post_title || ("Post #" + item.post_id);
-					title.appendChild(document.createTextNode("On "));
-					title.appendChild(link);
-				} else {
-					title.textContent = "Post unavailable";
-				}
-
-				if (item.type === "comment" && item.comment_message) {
-					var comment = document.createElement("div");
-					comment.textContent = 'Comment: "' + item.comment_message + '"';
-					row.appendChild(type);
-					row.appendChild(title);
-					row.appendChild(comment);
-				} else {
-					row.appendChild(type);
-					row.appendChild(title);
-				}
-
-				if (item.reason) {
-					var reason = document.createElement("div");
-					reason.className = "profile-report-reason";
-					reason.textContent = "Reason: " + item.reason;
-					row.appendChild(reason);
-				}
-
-				list.appendChild(row);
-			});
-		}
-
-		function renderReportError(message) {
-			var errorBox = document.getElementById("profile-report-error");
-			var list = document.getElementById("profile-report-list");
-			var empty = document.getElementById("profile-report-empty");
-			errorBox.textContent = message;
-			errorBox.style.display = "block";
-			list.innerHTML = "";
-			empty.style.display = "none";
-			document.getElementById("profile-report-count").textContent = "0";
-		}
-
-		function loadApprovedReports() {
-			var errorBox = document.getElementById("profile-report-error");
-			errorBox.style.display = "none";
-			fetchAllItems(commentReportUrl, [], function (commentReports) {
-				fetchAllItems(postReportUrl, [], function (postReports) {
-					var merged = [];
-					commentReports.forEach(function (item) {
-						merged.push({
-							type: "comment",
-							id: item.id,
-							post_id: item.post_id,
-							post_title: item.post_title,
-							comment_message: item.comment_message,
-							reason: item.reason
-						});
-					});
-					postReports.forEach(function (item) {
-						merged.push({
-							type: "post",
-							id: item.id,
-							post_id: item.post,
-							post_title: item.post_title,
-							reason: item.reason
-						});
-					});
-					reportsCache = merged;
-					renderReportList(reportsCache);
-				}, renderReportError);
-			}, renderReportError);
-		}
-
-		function loadPosts(profileId) {
-			var postsUrl = postsUrlBase + "?author=" + encodeURIComponent(profileId) + "&include_unapproved=1";
-			fetchAllPosts(postsUrl, [], renderPosts, renderPostsError);
-		}
-
-		function openReportModal() {
-			document.getElementById("profile-report-modal").style.display = "flex";
-		}
-
-		function closeReportModal() {
-			document.getElementById("profile-report-modal").style.display = "none";
-		}
-
-		function showProfileEditMessage(text, isSuccess) {
-			var message = document.getElementById("profile-edit-message");
-			if (!text) {
-				message.style.display = "none";
-				message.textContent = "";
-				message.classList.remove("success");
-				return;
-			}
-			message.textContent = text;
-			message.classList.toggle("success", Boolean(isSuccess));
-			message.style.display = "block";
-		}
-
-		function openProfileEditModal() {
-			if (!profileData) {
-				return;
-			}
-			showProfileEditMessage("");
-			document.getElementById("profile-first-name").value = profileData.first_name || "";
-			document.getElementById("profile-last-name").value = profileData.last_name || "";
-			document.getElementById("profile-description-input").value = profileData.description || "";
-			document.getElementById("profile-facebook-input").value = profileData.facebook_url || "";
-			document.getElementById("profile-twitter-input").value = profileData.twitter_url || "";
-			document.getElementById("profile-github-input").value = profileData.github_url || "";
-			document.getElementById("profile-behance-input").value = profileData.behance_url || "";
-			document.getElementById("profile-image-input").value = "";
-			document.getElementById("profile-edit-modal").style.display = "flex";
-		}
-
-		function closeProfileEditModal() {
-			document.getElementById("profile-edit-modal").style.display = "none";
-		}
-
-		function openDeleteModal(postId) {
-			pendingDeleteId = postId;
-			document.getElementById("profile-delete-modal").style.display = "flex";
-		}
-
-		function closeDeleteModal() {
-			pendingDeleteId = null;
-			document.getElementById("profile-delete-modal").style.display = "none";
-		}
-
-		function deletePost(postId) {
-			var csrfToken = getCookie("csrftoken");
-			var deleteUrl = buildDeleteUrl(postId);
-			fetch(deleteUrl, {
-				method: "DELETE",
-				credentials: "same-origin",
-				headers: {
-					"X-CSRFToken": csrfToken
-				}
-			})
-				.then(function (response) {
-					if (!response.ok) {
-						throw new Error("Failed to delete post.");
-					}
-					postsCache = postsCache.filter(function (post) {
-						return post.id !== postId;
-					});
-					renderPosts(postsCache);
-					closeDeleteModal();
-				})
-				.catch(function () {
-					renderPostsError("Could not delete the post.");
-					closeDeleteModal();
-				});
-		}
-
-		document.getElementById("profile-delete-cancel").addEventListener("click", closeDeleteModal);
-		document.getElementById("profile-delete-confirm").addEventListener("click", function () {
-			if (pendingDeleteId) {
-				deletePost(pendingDeleteId);
-			}
-		});
-		document.getElementById("profile-report-button").addEventListener("click", openReportModal);
-		document.getElementById("profile-report-close").addEventListener("click", closeReportModal);
-		document.getElementById("profile-edit-button").addEventListener("click", openProfileEditModal);
-		document.getElementById("profile-edit-cancel").addEventListener("click", closeProfileEditModal);
-		document.getElementById("profile-edit-form").addEventListener("submit", function (event) {
-			event.preventDefault();
-			showProfileEditMessage("");
-			var formData = new FormData();
-			formData.append("first_name", document.getElementById("profile-first-name").value.trim());
-			formData.append("last_name", document.getElementById("profile-last-name").value.trim());
-			formData.append("description", document.getElementById("profile-description-input").value.trim());
-			formData.append("facebook_url", document.getElementById("profile-facebook-input").value.trim());
-			formData.append("twitter_url", document.getElementById("profile-twitter-input").value.trim());
-			formData.append("github_url", document.getElementById("profile-github-input").value.trim());
-			formData.append("behance_url", document.getElementById("profile-behance-input").value.trim());
-
-			var imageInput = document.getElementById("profile-image-input");
-			if (imageInput.files[0]) {
-				formData.append("image", imageInput.files[0]);
-			}
-
-			fetch(apiUrl, {
-				method: "PATCH",
-				credentials: "same-origin",
-				headers: {
-					"X-CSRFToken": getCookie("csrftoken")
-				},
-				body: formData
-			})
-				.then(function (response) {
-					if (!response.ok) {
-						throw new Error("Failed to update profile.");
-					}
-					return response.json();
-				})
-				.then(function (data) {
-					profileData = data;
-					applyProfileData(profileData);
-					showProfileEditMessage("Profile updated.", true);
-					setTimeout(closeProfileEditModal, 700);
-				})
-				.catch(function () {
-					showProfileEditMessage("Could not update profile.");
-				});
-		});
-
-		fetch(apiUrl, { credentials: "same-origin" })
-			.then(function (response) {
-				if (!response.ok) {
-					throw new Error("Failed to load profile.");
-				}
-				return response.json();
-			})
-			.then(function (data) {
-				profileData = data;
-				applyProfileData(profileData);
-				if (data.id) {
-					loadPosts(data.id);
-				} else {
-					renderPostsError("Missing profile id for posts.");
-				}
-				loadApprovedReports();
-			})
-			.catch(function () {
-				var errorBox = document.getElementById("profile-error");
-				errorBox.textContent = "Could not load profile data.";
-				errorBox.style.display = "block";
-				renderPostsError("Could not load posts.");
-			});
-	});
-</script>
+<script src="{% static 'js/accounts/profile.js' %}"></script>
 {% endblock %}

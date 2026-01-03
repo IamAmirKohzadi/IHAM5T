@@ -2,22 +2,8 @@
 
 <div class="single-sidebar-widget tag-cloud-widget">
     <h4 class="tagcloud-title">Categories</h4>
-    <ul id="category-list"></ul>
+    <ul id="category-list"
+        data-category-url="{% url 'blog:api-v1:category-list' %}"
+        data-blog-home-url="{% url 'website:blog-home' %}"></ul>
 </div>
-<script>
-    window.addEventListener('load', function () {
-        if (!window.jQuery) {
-            return;
-        }
-        $.getJSON("{% url 'blog:api-v1:category-list' %}", function (data) {
-            var categories = data.results || data;
-            var $list = $("#category-list");
-            $list.empty();
-
-            categories.forEach(function (cat) {
-                var link = "{% url 'website:blog-home' %}?categories=" + encodeURIComponent(cat.id);
-                $list.append('<li><a href="' + link + '">' + cat.name + '</a></li>');
-            });
-        });
-    });
-</script>
+<script src="{% static 'js/blogApi/blog-tags.js' %}"></script>

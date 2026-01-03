@@ -2,6 +2,7 @@ from rest_framework import serializers
 from django.db.models import Q
 from django.db.models.functions import Coalesce
 from blog.models import Post,Category,Comment,CommentReport,PostReport,PostReaction
+from friends.models import Friendship
 from django.urls import reverse
 from accounts.models import Profile
 from django.utils.text import Truncator
@@ -185,6 +186,16 @@ class CommentSerializer(serializers.ModelSerializer):
             request = self.context.get("request")
             if not request or not request.user or not request.user.is_staff:
                 raise serializers.ValidationError("Comments are disabled until the post is approved.")
+        if not self.instance and post:
+            request = self.context.get("request")
+            if request and request.user and request.user.is_authenticated and not request.user.is_staff:
+                post_author = post.author
+                if post_author and post_author.user_id != request.user.id:
+                    profile = Profile.objects.filter(user_id=request.user.id).first()
+                    if profile and not Friendship.objects.filter(
+                        Q(user_a=profile, user_b=post_author) | Q(user_a=post_author, user_b=profile)
+                    ).exists():
+                        raise serializers.ValidationError("Only friends can comment on this post.")
         return attrs
 
     def validate_message(self, value):

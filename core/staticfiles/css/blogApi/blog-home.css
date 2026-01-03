@@ -1,0 +1,129 @@
+.post-modal {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: rgba(0, 0, 0, 0.45);
+		display: none;
+		align-items: center;
+		justify-content: center;
+		z-index: 1100;
+	}
+
+	.post-modal.is-open {
+		display: flex;
+	}
+
+	.post-modal-card {
+		background: #fff;
+		border-radius: 8px;
+		padding: 16px;
+		width: 720px;
+		max-width: 90vw;
+		box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+	}
+
+	.post-modal-card input[type="text"],
+	.post-modal-card textarea,
+	.post-modal-card input[type="file"] {
+		width: 100%;
+		border: 1px solid #ddd;
+		border-radius: 4px;
+		padding: 8px;
+		margin-bottom: 8px;
+		font-size: 14px;
+	}
+
+	.post-modal-row {
+		margin-bottom: 8px;
+		text-align: left;
+		font-size: 14px;
+		color: #555;
+	}
+
+	.post-modal-categories label {
+		display: block;
+		margin-bottom: 4px;
+	}
+
+	.post-modal-actions {
+		display: flex;
+		justify-content: flex-end;
+		gap: 8px;
+	}
+
+	.post-modal-message {
+		font-size: 13px;
+		color: #d9534f;
+		margin-bottom: 8px;
+	}
+
+	.post-modal-message.success {
+		color: #2e7d32;
+	}
+
+	.post-reactions {
+		display: flex;
+		gap: 10px;
+		align-items: center;
+		flex-wrap: wrap;
+	}
+
+	.user-details .reactions {
+		text-align: right;
+	}
+
+	.user-details .post-reactions {
+		justify-content: flex-end;
+		width: 100%;
+	}
+
+	.post-reaction {
+		font-size: 14px;
+		color: #777;
+		text-decoration: none;
+	}
+
+	.post-reaction i {
+		font-size: 16px;
+	}
+
+	.post-reaction.active {
+		color: #0b5ed7;
+		font-weight: 600;
+	}
+
+	.post-reaction-message {
+		font-size: 12px;
+		color: #d9534f;
+		margin-top: 6px;
+	}
+
+	.create-post-widget {
+		text-align: center;
+		margin-bottom: 20px;
+	}
+
+	#create-post-button {
+		border-radius: 20px;
+	}
+
+	.comment-verify-note {
+		font-size: 12px;
+		color: #856404;
+		background: #fff3cd;
+		border: 1px solid #ffeeba;
+		border-radius: 6px;
+		padding: 8px;
+		margin-bottom: 10px;
+	}
+
+	.filter-widget select {
+		width: 100%;
+		border: 1px solid #ddd;
+		border-radius: 4px;
+		padding: 8px;
+		font-size: 13px;
+		margin-bottom: 8px;
+	}

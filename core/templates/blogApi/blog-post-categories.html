@@ -2,59 +2,9 @@
 
 <div class="single-sidebar-widget post-category-widget">
     <h4 class="category-title">Post Categories</h4>
-    <ul class="cat-list" id="post-category-list"></ul>
+    <ul class="cat-list" id="post-category-list"
+        data-category-url="{% url 'blog:api-v1:category-list' %}"
+        data-blog-home-url="{% url 'website:blog-home' %}"
+        data-post-list-url="{% url 'blog:api-v1:post-list' %}"></ul>
 </div>
-<script>
-    window.addEventListener('load', function () {
-        if (!window.jQuery) {
-            return;
-        }
-        var pathParts = window.location.pathname.split("/").filter(Boolean);
-        var postId = pathParts[pathParts.length - 1];
-        var isPostPage = postId && !isNaN(parseInt(postId, 10));
-        if (!isPostPage) {
-            $.getJSON("{% url 'blog:api-v1:category-list' %}", function (data) {
-                var categories = data.results || data;
-                var $list = $("#post-category-list");
-                $list.empty();
-
-                categories.forEach(function (cat) {
-                    var link = "{% url 'website:blog-home' %}?categories=" + encodeURIComponent(cat.id);
-                    $list.append(
-                        '<li><a href="' + link + '" class="d-flex justify-content-between"><p>' +
-                        cat.name +
-                        '</p></a></li>'
-                    );
-                });
-            });
-            return;
-        }
-
-        var postUrl = "{% url 'blog:api-v1:post-list' %}" + postId + "/";
-        $.getJSON(postUrl, function (data) {
-            var categories = Array.isArray(data.categories_info) ? data.categories_info : [];
-            if (!categories.length && Array.isArray(data.categories)) {
-                categories = data.categories.map(function (name) {
-                    return { name: name };
-                });
-            }
-            var $list = $("#post-category-list");
-            $list.empty();
-            if (!categories.length) {
-                $list.append('<li><span>No categories</span></li>');
-                return;
-            }
-            categories.forEach(function (cat) {
-                var link = "{% url 'website:blog-home' %}";
-                if (cat.id) {
-                    link += "?categories=" + encodeURIComponent(cat.id);
-                }
-                $list.append(
-                    '<li><a href="' + link + '" class="d-flex justify-content-between"><p>' +
-                    (cat.name || "") +
-                    '</p></a></li>'
-                );
-            });
-        });
-    });
-</script>
+<script src="{% static 'js/blogApi/blog-post-categories.js' %}"></script>

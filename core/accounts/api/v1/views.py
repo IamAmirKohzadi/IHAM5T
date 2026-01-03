@@ -1,5 +1,6 @@
 from rest_framework import generics,status
 from rest_framework.response import Response
+from rest_framework.renderers import TemplateHTMLRenderer, JSONRenderer
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView
@@ -9,6 +10,7 @@ from rest_framework_simplejwt.views import (TokenObtainPairView,
                                             TokenRefreshView,
                                             TokenVerifyView)
 from django.shortcuts import get_object_or_404
+from .permissions import RedirectAuthenticatedApiMixin
 from django.core.mail import send_mail as send2
 from django.conf import settings
 from accounts.models import User,Profile
@@ -18,7 +20,7 @@ from mail_templated import send_mail,EmailMessage
 from jwt.exceptions import ExpiredSignatureError,InvalidSignatureError
 import jwt
 
-class RegistrationApiView(TokenForUserMixin,generics.GenericAPIView):
+class RegistrationApiView(RedirectAuthenticatedApiMixin,TokenForUserMixin,generics.GenericAPIView):
     serializer_class = RegistrationSerializer
     def post(self, request, *args, **kwargs):
         serializer = RegistrationSerializer(data = request.data)
@@ -37,7 +39,8 @@ class RegistrationApiView(TokenForUserMixin,generics.GenericAPIView):
             EmailThread(email_obj).start()
             return Response(data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+    
+#returns a DRF Token (not JWT) for the user.
 class CustomObtainAuthToken(ObtainAuthToken):
     serializer_class = CustomAuthTokenSerializer
     def post(self, request, *args, **kwargs):
@@ -52,13 +55,13 @@ class CustomObtainAuthToken(ObtainAuthToken):
             'email': user.email
         })
     
-
+# deletes the user’s DRF Token (logs them out if you’re using token auth). It only affects the DRF token, not JWT.
 class CustomDiscardAuthToken(APIView):
     permission_classes = [IsAuthenticated]
     def post(self,request):
         request.user.auth_token.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-    
+#returns a JWT access + refresh pair (SimpleJWT).   
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
@@ -106,24 +109,38 @@ class TestEmailSend(TokenForUserMixin,generics.GenericAPIView):
         return Response('email sent!')
     
 
+class ActivationApiView(RedirectAuthenticatedApiMixin, APIView):
+    renderer_classes = [TemplateHTMLRenderer, JSONRenderer]
 
-class ActivationApiView(APIView):
-    def get(self,request,token,*args,**kwargs):
+    def get(self, request, token, *args, **kwargs):
+        context = {"status": "error", "message": "Activation link is not valid."}
+        status_code = status.HTTP_400_BAD_REQUEST
         try:
-            token = jwt.decode(token,settings.SECRET_KEY,algorithms=['HS256'])
-            user_id = token.get('user_id')
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+            user_id = payload.get("user_id")
+            if not user_id:
+                context["message"] = "Activation link is not valid."
+            else:
+                user_obj = User.objects.filter(pk=user_id).first()
+                if not user_obj:
+                    context["message"] = "Account not found."
+                elif not user_obj.is_verified:
+                    user_obj.is_verified = True
+                    user_obj.is_active = True
+                    user_obj.save(update_fields=["is_verified", "is_active"])
+                    context = {"status": "success", "message": "Your account is verified. You can log in now."}
+                    status_code = status.HTTP_200_OK
+                else:
+                    context = {"status": "info", "message": "Your account is already verified."}
+                    status_code = status.HTTP_200_OK
         except ExpiredSignatureError:
-            return Response({'detail' : 'token expired!'},status=status.HTTP_400_BAD_REQUEST)
-        except InvalidSignatureError:
-            return Response({'detail' : 'token not valid!'},status=status.HTTP_400_BAD_REQUEST)
-        user_obj = User.objects.get(pk = user_id)
-        if not user_obj.is_verified:
-            user_obj.is_verified = True
-            user_obj.is_active = True
-            user_obj.save()
-            return Response({'detail' : 'ur acc verified successfully!'})
-        else:
-            return Response({'detail' : 'ur acc is already verified!'})
+            context["message"] = "Activation link expired."
+        except (InvalidSignatureError, jwt.DecodeError):
+            context["message"] = "Activation link is not valid."
+
+        if request.accepted_renderer.format == "html":
+            return Response(context, template_name="accounts/activation_confirm.html", status=status.HTTP_200_OK)
+        return Response({"detail": context["message"]}, status=status_code)
 
         
 class ActivationResendApiView(TokenForUserMixin,generics.GenericAPIView):

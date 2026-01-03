@@ -10,7 +10,7 @@ class ContactView(TemplateView):
     template_name = "website/contact.html"
 
 class NewsletterView(TemplateView):
-    template_name = "website/newsletter.html"
+    template_name = "blogApi/blog-newsletter.html"
 
 class BlogHome(TemplateView):
     template_name = "blogApi/blog-home.html"

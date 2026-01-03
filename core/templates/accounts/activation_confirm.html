@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/accounts/activation_confirm.css' %}">
+
+<section class="activation-section">
+	<div class="container">
+		<div class="activation-card">
+			<h2 class="activation-title">Account activation</h2>
+			<p class="activation-message {{ status|default:'error' }}">{{ message }}</p>
+			<a class="activation-action" href="{% url 'login' %}">Go to login</a>
+		</div>
+	</div>
+</section>
+{% endblock %}
