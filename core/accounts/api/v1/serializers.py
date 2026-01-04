@@ -7,6 +7,7 @@ from rest_framework import serializers
 from ...models import User,Profile
 
 
+# Serializer for creating new users with password confirmation.
 class RegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(max_length=255,write_only=True)
     password1 = serializers.CharField(max_length=255,write_only=True)
@@ -15,6 +16,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
         fields = ['email','password','password1']
 
     def validate(self, attrs):
+        # Enforce matching passwords and password strength rules.
         if attrs.get('password') != attrs.get('password1'):
             raise serializers.ValidationError({'details':'password does not match!'})
         
@@ -26,10 +28,12 @@ class RegistrationSerializer(serializers.ModelSerializer):
         return super().validate(attrs)
     
     def create(self, validated_data):
+        # Drop the confirmation field before creating the user.
         validated_data.pop('password1')
         return User.objects.create_user(**validated_data)
 
 
+# Serializer for email/password login using DRF token auth.
 class CustomAuthTokenSerializer(serializers.Serializer):
     email = serializers.CharField(
         label=_("email"),
@@ -47,6 +51,7 @@ class CustomAuthTokenSerializer(serializers.Serializer):
     )
 
     def validate(self, attrs):
+        # Authenticate the user and block unverified accounts.
         username = attrs.get('email')
         password = attrs.get('password')
 
@@ -72,8 +77,10 @@ class CustomAuthTokenSerializer(serializers.Serializer):
         return attrs
 
 
+# Serializer that extends SimpleJWT to attach user metadata.
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
+        # Reuse JWT validation and reject unverified users.
         validated_data = super().validate(attrs)
         if not self.user.is_verified:
                 raise serializers.ValidationError({'detail':'you are not verified!'})
@@ -81,12 +88,14 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         validated_data['id'] = self.user.id
         return validated_data
     
+# Serializer for changing a user's password with confirmation.
 class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(required=True)
     new_password = serializers.CharField(required=True)
     new_password1 = serializers.CharField(required=True)
 
     def validate(self, attrs):
+        # Ensure new passwords match and pass Django validators.
         if attrs.get('new_password') != attrs.get('new_password1'):
             raise serializers.ValidationError({'detail':'password does not match!'})
         try:
@@ -96,6 +105,7 @@ class ChangePasswordSerializer(serializers.Serializer):
             
         return super().validate(attrs)
 
+# Serializer that exposes editable profile fields plus email.
 class ProfileSerializer(serializers.ModelSerializer):
     email = serializers.CharField(source='user.email',read_only=True)
     class Meta:
@@ -104,10 +114,12 @@ class ProfileSerializer(serializers.ModelSerializer):
         read_only_fields = ['id','email','created_date','updated_date']
 
 
+# Serializer for requesting a new activation email.
 class ActivationResendSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
 
     def validate(self, attrs):
+        # Ensure the email belongs to an inactive/unverified user.
         email = attrs.get('email')
         try:
             user_obj = User.objects.get(email=email)

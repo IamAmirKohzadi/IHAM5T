@@ -5,11 +5,13 @@ from django.contrib.auth.models import (BaseUserManager,
 from django.utils.translation import gettext_lazy as _
 
 
+# Manager that creates regular users and superusers.
 class UserManager(BaseUserManager):
     '''
     created normal and superuser for app!
     '''
     def create_user(self,email,password,**extra_fields):
+        # Normalize email, set defaults, and persist a new user.
         if not email:
             raise ValueError(_('Email must be set!'))
         extra_fields.setdefault('is_active', True)
@@ -20,6 +22,7 @@ class UserManager(BaseUserManager):
         return user
     
     def create_superuser(self,email,password,**extra_fields):
+        # Enforce superuser flags before delegating to create_user.
         extra_fields.setdefault('is_staff',True)
         extra_fields.setdefault('is_superuser',True)
         extra_fields.setdefault('is_active',True)
@@ -37,6 +40,7 @@ class UserManager(BaseUserManager):
 
 
 
+# Custom user model that uses email as the username field.
 class User(AbstractBaseUser,PermissionsMixin):
     '''
     custom user model for app!
@@ -56,4 +60,5 @@ class User(AbstractBaseUser,PermissionsMixin):
 
     objects = UserManager()
     def __str__(self):
+        # Return the email for admin and display usage.
         return self.email

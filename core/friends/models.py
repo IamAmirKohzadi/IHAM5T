@@ -4,6 +4,7 @@ from django.db.models import CheckConstraint, F, Q, UniqueConstraint
 from accounts.models import Profile
 
 
+# Stores a friend request and its current status.
 class FriendRequest(models.Model):
     STATUS_PENDING = "pending"
     STATUS_ACCEPTED = "accepted"
@@ -40,9 +41,11 @@ class FriendRequest(models.Model):
         ]
 
     def __str__(self):
+        # Show a compact summary of the request.
         return f"{self.from_profile_id} -> {self.to_profile_id} ({self.status})"
 
 
+# Represents a mutual friendship between two profiles.
 class Friendship(models.Model):
     user_a = models.ForeignKey(
         Profile,
@@ -66,9 +69,11 @@ class Friendship(models.Model):
         ]
 
     def save(self, *args, **kwargs):
+        # Normalize ordering so (a,b) and (b,a) are treated the same.
         if self.user_a_id and self.user_b_id and self.user_a_id > self.user_b_id:
             self.user_a_id, self.user_b_id = self.user_b_id, self.user_a_id
         super().save(*args, **kwargs)
 
     def __str__(self):
+        # Show the pair of profile IDs for admin readability.
         return f"{self.user_a_id} <-> {self.user_b_id}"

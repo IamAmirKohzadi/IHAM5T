@@ -1,7 +1,8 @@
 from rest_framework import permissions
-#check if the user owns the post to edit it!#
+# Allows safe methods and restricts edits to owners or admins.
 class IsOwnerOrReadOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
+        # Permit reads for everyone and writes for owners/admins.
         if request.method in permissions.SAFE_METHODS:
             return True
 
@@ -10,8 +11,10 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
         return obj.author.user == request.user
 
 
+# Allows safe methods and restricts comment edits to owners.
 class IsCommentOwnerOrReadOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
+        # Allow read-only access and enforce comment ownership.
         if request.method in permissions.SAFE_METHODS:
             return True
         if not obj.author:
@@ -19,8 +22,10 @@ class IsCommentOwnerOrReadOnly(permissions.BasePermission):
         return obj.author.user == request.user
 
 
+# Allows safe methods and requires verified accounts for writes.
 class IsVerifiedOrReadOnly(permissions.BasePermission):
     def has_permission(self, request, view):
+        # Permit reads for everyone but require verified users to write.
         if request.method in permissions.SAFE_METHODS:
             return True
         user = getattr(request, "user", None)

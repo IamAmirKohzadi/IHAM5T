@@ -5,6 +5,7 @@ from accounts.models import Profile
 from friends.models import FriendRequest, Friendship
 
 
+# Serializes friend requests with readable names.
 class FriendRequestSerializer(serializers.ModelSerializer):
     from_profile = serializers.PrimaryKeyRelatedField(read_only=True)
     to_profile = serializers.PrimaryKeyRelatedField(queryset=Profile.objects.all())
@@ -26,6 +27,7 @@ class FriendRequestSerializer(serializers.ModelSerializer):
         read_only_fields = ["status", "created_date", "updated_date"]
 
     def get_from_name(self, obj):
+        # Build a display name for the sender.
         profile = obj.from_profile
         if not profile:
             return ""
@@ -33,6 +35,7 @@ class FriendRequestSerializer(serializers.ModelSerializer):
         return full_name or profile.user.email
 
     def get_to_name(self, obj):
+        # Build a display name for the recipient.
         profile = obj.to_profile
         if not profile:
             return ""
@@ -40,6 +43,7 @@ class FriendRequestSerializer(serializers.ModelSerializer):
         return full_name or profile.user.email
 
     def validate(self, attrs):
+        # Prevent self-requests, duplicates, and requests to friends.
         request = self.context.get("request")
         if not request or not request.user or not request.user.is_authenticated:
             return attrs
@@ -61,6 +65,7 @@ class FriendRequestSerializer(serializers.ModelSerializer):
         return attrs
 
 
+# Serializes friendships from the perspective of the current user.
 class FriendshipSerializer(serializers.ModelSerializer):
     friend_id = serializers.SerializerMethodField()
     friend_name = serializers.SerializerMethodField()
@@ -72,6 +77,7 @@ class FriendshipSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
     def _get_friend(self, obj):
+        # Resolve the "other" profile for the current user.
         request = self.context.get("request")
         if not request or not request.user or not request.user.is_authenticated:
             return None
@@ -85,10 +91,12 @@ class FriendshipSerializer(serializers.ModelSerializer):
         return None
 
     def get_friend_id(self, obj):
+        # Return the friend's profile ID for this relationship.
         friend = self._get_friend(obj)
         return friend.id if friend else None
 
     def get_friend_name(self, obj):
+        # Return a display name for the friend profile.
         friend = self._get_friend(obj)
         if not friend:
             return ""
@@ -96,5 +104,6 @@ class FriendshipSerializer(serializers.ModelSerializer):
         return full_name or friend.user.email
 
     def get_friend_email(self, obj):
+        # Return the friend's email for display.
         friend = self._get_friend(obj)
         return friend.user.email if friend else ""

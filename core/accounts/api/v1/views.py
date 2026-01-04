@@ -20,9 +20,11 @@ from mail_templated import send_mail,EmailMessage
 from jwt.exceptions import ExpiredSignatureError,InvalidSignatureError
 import jwt
 
+# API endpoint to register new users and send activation emails.
 class RegistrationApiView(RedirectAuthenticatedApiMixin,TokenForUserMixin,generics.GenericAPIView):
     serializer_class = RegistrationSerializer
     def post(self, request, *args, **kwargs):
+        # Validate input, create user, and email activation token.
         serializer = RegistrationSerializer(data = request.data)
         if serializer.is_valid():
             serializer.save()
@@ -40,10 +42,11 @@ class RegistrationApiView(RedirectAuthenticatedApiMixin,TokenForUserMixin,generi
             return Response(data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-#returns a DRF Token (not JWT) for the user.
+# Returns a DRF token (not JWT) for the authenticated user.
 class CustomObtainAuthToken(ObtainAuthToken):
     serializer_class = CustomAuthTokenSerializer
     def post(self, request, *args, **kwargs):
+        # Validate credentials and issue a token for the user.
         serializer = self.serializer_class(data=request.data,
                                            context={'request': request})
         serializer.is_valid(raise_exception=True)
@@ -59,22 +62,26 @@ class CustomObtainAuthToken(ObtainAuthToken):
 class CustomDiscardAuthToken(APIView):
     permission_classes = [IsAuthenticated]
     def post(self,request):
+        # Delete the current user's token.
         request.user.auth_token.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-#returns a JWT access + refresh pair (SimpleJWT).   
+        return Response(status=status.HTTP_204_NO_CONTENT)  
+# Returns a JWT access + refresh pair (SimpleJWT).
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
+# Allows authenticated users to change their own password.
 class ChangePasswordApiView(generics.GenericAPIView):
     model = User
     permission_classes = [IsAuthenticated]
     serializer_class = ChangePasswordSerializer
 
     def get_object(self,queryset=None):
+        # Resolve the current user as the password change target.
         obj = self.request.user
         return obj
     
     def put(self, request, *args, **kwargs):
+        # Verify old password and apply a new one.
         self.object = self.get_object()
         serializer = self.get_serializer(data = request.data)
         if serializer.is_valid():
@@ -85,19 +92,23 @@ class ChangePasswordApiView(generics.GenericAPIView):
             return Response({'details' : 'password changed very gooooooooood!'},status=status.HTTP_200_OK)
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
     
+# Retrieves and updates the authenticated user's profile.
 class ProfileApiView(generics.RetrieveUpdateAPIView):
     serializer_class = ProfileSerializer
     permission_classes = [IsAuthenticated]
     def get_object(self):
+        # Load the profile for the current user.
         return get_object_or_404(Profile,user=self.request.user)
     def update(self, request, *args, **kwargs):
+        # Persist profile updates and add a success message.
         response = super().update(request, *args, **kwargs)
         response.data['message'] = 'Changes were done successfully!'
         return response
 
-#test class for testing email system!
+# Sends a test email using the templated email system.
 class TestEmailSend(TokenForUserMixin,generics.GenericAPIView):
     def get(self,request,*args,**kwargs):
+        # Send a sample email to confirm SMTP configuration.
         self.email = 'test@test.com'
         user_obj = get_object_or_404(User,email=self.email)
         token = self.get_tokens_for_user(user_obj)
@@ -109,10 +120,12 @@ class TestEmailSend(TokenForUserMixin,generics.GenericAPIView):
         return Response('email sent!')
     
 
+# Confirms an activation token and renders HTML or JSON status.
 class ActivationApiView(RedirectAuthenticatedApiMixin, APIView):
     renderer_classes = [TemplateHTMLRenderer, JSONRenderer]
 
     def get(self, request, token, *args, **kwargs):
+        # Decode the token and toggle verification if valid.
         context = {"status": "error", "message": "Activation link is not valid."}
         status_code = status.HTTP_400_BAD_REQUEST
         try:
@@ -143,9 +156,11 @@ class ActivationApiView(RedirectAuthenticatedApiMixin, APIView):
         return Response({"detail": context["message"]}, status=status_code)
 
         
+# Resends activation emails for users who are not verified yet.
 class ActivationResendApiView(TokenForUserMixin,generics.GenericAPIView):
     serializer_class = ActivationResendSerializer
     def post(self,request,*args,**kwargs):
+        # Validate the email and send a fresh activation token.
         serializer = ActivationResendSerializer(data = request.data)
         if serializer.is_valid():
             user_obj = serializer.validated_data['user']

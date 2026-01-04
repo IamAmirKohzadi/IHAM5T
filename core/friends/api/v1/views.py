@@ -11,6 +11,7 @@ from friends.models import FriendRequest, Friendship
 from .serializers import FriendRequestSerializer, FriendshipSerializer
 
 
+# CRUD endpoints for friend requests with custom accept/decline actions.
 class FriendRequestViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = FriendRequestSerializer
@@ -18,6 +19,7 @@ class FriendRequestViewSet(viewsets.ModelViewSet):
     filterset_fields = ["status", "from_profile", "to_profile"]
 
     def get_queryset(self):
+        # Limit requests to those involving the current user (or all for staff).
         user = getattr(self.request, "user", None)
         if not user or not user.is_authenticated:
             return FriendRequest.objects.none()
@@ -29,10 +31,12 @@ class FriendRequestViewSet(viewsets.ModelViewSet):
         return FriendRequest.objects.filter(Q(from_profile=profile) | Q(to_profile=profile))
 
     def perform_create(self, serializer):
+        # Assign the current user's profile as the sender.
         profile = Profile.objects.filter(user=self.request.user).first()
         serializer.save(from_profile=profile)
 
     def create(self, request, *args, **kwargs):
+        # Reuse declined/canceled requests instead of duplicating rows.
         profile = Profile.objects.filter(user=request.user).first()
         to_profile_id = request.data.get("to_profile")
         if profile and to_profile_id:
@@ -50,6 +54,7 @@ class FriendRequestViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["post"])
     def accept(self, request, *args, **kwargs):
+        # Custom action endpoint to accept a request and create friendship.
         friend_request = self.get_object()
         profile = Profile.objects.filter(user=request.user).first()
         if not profile or friend_request.to_profile_id != profile.id:
@@ -67,6 +72,7 @@ class FriendRequestViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["post"])
     def decline(self, request, *args, **kwargs):
+        # Custom action endpoint to mark a request as declined.
         friend_request = self.get_object()
         profile = Profile.objects.filter(user=request.user).first()
         if not profile or friend_request.to_profile_id != profile.id:
@@ -80,6 +86,7 @@ class FriendRequestViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["post"])
     def cancel(self, request, *args, **kwargs):
+        # Custom action endpoint for senders to cancel pending requests.
         friend_request = self.get_object()
         profile = Profile.objects.filter(user=request.user).first()
         if not profile or friend_request.from_profile_id != profile.id:
@@ -92,11 +99,13 @@ class FriendRequestViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
+# Read-only endpoints to list friendships plus a custom remove action.
 class FriendshipViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = FriendshipSerializer
 
     def get_queryset(self):
+        # Limit friendships to those involving the current user (or all for staff).
         user = getattr(self.request, "user", None)
         if not user or not user.is_authenticated:
             return Friendship.objects.none()
@@ -109,6 +118,7 @@ class FriendshipViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=True, methods=["post"])
     def remove(self, request, *args, **kwargs):
+        # Custom action endpoint to remove a friendship for the user.
         friendship = self.get_object()
         profile = Profile.objects.filter(user=request.user).first()
         if not profile or (friendship.user_a_id != profile.id and friendship.user_b_id != profile.id):

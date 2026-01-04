@@ -113,7 +113,7 @@ from accounts.models import Profile
 
         
 
-#a class-based view that provides a set of default actions for performing CRUD operations on a model!#
+# CRUD API for posts with filtering, ordering, and custom actions.
 class PostModelViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly, IsVerifiedOrReadOnly, IsOwnerOrReadOnly]
     serializer_class = PostSerializer
@@ -130,6 +130,7 @@ class PostModelViewSet(viewsets.ModelViewSet):
     ordering_fields = ['published_date', 'counted_view', 'created_date']
 
     def get_queryset(self):
+        # Build the post queryset with counts and visibility rules.
         qs = Post.objects.all().annotate(
             likes_count=Count('reactions', filter=Q(reactions__value=1), distinct=True),
             dislikes_count=Count('reactions', filter=Q(reactions__value=-1), distinct=True),
@@ -160,6 +161,7 @@ class PostModelViewSet(viewsets.ModelViewSet):
         return qs.filter(status=True)
 
     def perform_create(self, serializer):
+        # Force unapproved status for non-staff creators.
         user = getattr(self.request, "user", None)
         if not user or not user.is_staff:
             serializer.save(status=False)
@@ -167,6 +169,7 @@ class PostModelViewSet(viewsets.ModelViewSet):
         serializer.save(status=True)
 
     def perform_update(self, serializer):
+        # Preserve status for non-staff updates to avoid approvals.
         user = getattr(self.request, "user", None)
         if not user or not user.is_staff:
             serializer.save(status=serializer.instance.status)
@@ -174,6 +177,7 @@ class PostModelViewSet(viewsets.ModelViewSet):
         serializer.save()
 
     def retrieve(self, request, *args, **kwargs):#we use session based so user does not increase the views by refreshing!
+        # Increment view count once per session before returning data.
         instance = self.get_object()
         session_key = f"viewed_post_{instance.pk}"
 
@@ -188,6 +192,7 @@ class PostModelViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsVerifiedOrReadOnly])
     def react(self, request, *args, **kwargs):
+        # Custom action endpoint to add/update/remove a reaction.
         post = self.get_object()
         try:
             value = int(request.data.get("value"))
@@ -224,9 +229,10 @@ class PostModelViewSet(viewsets.ModelViewSet):
             "dislikes_count": counts.get("dislikes", 0),
             "user_reaction": current,
         })
-
-    @action(detail=False, methods=['get'])#we use this def to choose the blogger of the month based on total views in the last 30 days, with a minimum post count (e.g., at least 2 posts) to avoid one‑hit wins!
+# Choosing the blogger of the month based on total views in the last 30 days, with a minimum post count (e.g., at least 2 posts) to avoid one‑hit wins!
+    @action(detail=False, methods=['get'])
     def top_author(self, request):
+        # Custom action endpoint to compute the top author by views.
         try:
             days = int(request.query_params.get('days', 30))
         except (TypeError, ValueError):
@@ -282,12 +288,14 @@ class PostModelViewSet(viewsets.ModelViewSet):
             'period_days': days,
         })
 
+# CRUD API for categories.
 class CategoryModelViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
     serializer_class = CategorySerializer
     queryset = Category.objects.all()
 
 
+# CRUD API for comments with ordering/filtering.
 class CommentModelViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly, IsVerifiedOrReadOnly, IsCommentOwnerOrReadOnly]
     serializer_class = CommentSerializer
@@ -298,6 +306,7 @@ class CommentModelViewSet(viewsets.ModelViewSet):
     ordering = ["created_date"]
 
 
+# CRUD API for comment reports with scoped visibility.
 class CommentReportViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = CommentReportSerializer
@@ -305,6 +314,7 @@ class CommentReportViewSet(viewsets.ModelViewSet):
     filterset_fields = ["status", "comment", "reporter"]
 
     def get_queryset(self):
+        # Limit reports to those related to the current user unless staff.
         qs = CommentReport.objects.all()
         user = getattr(self.request, "user", None)
         if not user or not user.is_authenticated:
@@ -314,6 +324,7 @@ class CommentReportViewSet(viewsets.ModelViewSet):
         return qs.filter(Q(comment__post__author__user=user) | Q(comment__author__user=user))
 
 
+# CRUD API for post reports with scoped visibility.
 class PostReportViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = PostReportSerializer
@@ -321,6 +332,7 @@ class PostReportViewSet(viewsets.ModelViewSet):
     filterset_fields = ["status", "post", "reporter"]
 
     def get_queryset(self):
+        # Limit reports to the current user's posts unless staff.
         qs = PostReport.objects.all()
         user = getattr(self.request, "user", None)
         if not user or not user.is_authenticated:

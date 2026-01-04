@@ -4,6 +4,7 @@ from django.db import models
 from .users import User
 
 
+# Stores extra user-facing profile data.
 class Profile(models.Model):
     user = models.ForeignKey(User,on_delete=models.CASCADE)
     first_name = models.CharField(max_length=250,blank=True)
@@ -18,9 +19,11 @@ class Profile(models.Model):
     updated_date = models.DateTimeField(auto_now=True)
     
     def __str__(self):
+        # Display the owning user's email in admin lists.
         return self.user.email
     
 @receiver(post_save,sender=User)
 def save_profile(sender,instance,created,**kwargs):
+    # Create a profile automatically when a new user is created.
     if created:
         Profile.objects.create(user=instance)

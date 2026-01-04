@@ -22,6 +22,7 @@ class Post(models.Model):
 
 
     def __str__(self):
+        # Return the post title for admin displays.
         return self.title
     
 class Category(models.Model):
@@ -33,6 +34,7 @@ class Category(models.Model):
         ]
 
     def __str__(self):
+        # Return the category name for admin displays.
         return self.name
 
 
@@ -53,6 +55,7 @@ class Comment(models.Model):
     created_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
+        # Show the post id and author/guest label.
         label = self.name or (self.author.user.email if self.author else "anonymous")
         return f"{self.post_id} - {label}"
 
@@ -74,6 +77,7 @@ class CommentReport(models.Model):
     created_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
+        # Show the comment id and reporter label.
         label = self.reporter.user.email if self.reporter else "anonymous"
         return f"{self.comment_id} - {label}"
 
@@ -98,6 +102,7 @@ class PostReaction(models.Model):
         ]
 
     def __str__(self):
+        # Show the post, user, and reaction value.
         return f"{self.post_id} - {self.user_id} ({self.value})"
 
 
@@ -118,5 +123,6 @@ class PostReport(models.Model):
     created_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
+        # Show the post id and reporter label.
         label = self.reporter.user.email if self.reporter else "anonymous"
         return f"{self.post_id} - {label}"

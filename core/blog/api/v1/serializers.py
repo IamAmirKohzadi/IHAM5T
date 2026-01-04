@@ -14,14 +14,16 @@ from django.utils.text import Truncator
 #     title = serializers.CharField(max_length=255)
 #     author = serializers.CharField(max_length=255)
 
-#we use serializer when we need more control, customization, or are working with non-model data!#
-#but we use ModelSerializer when we are dealing with models in a standard CRUD context!#
+# we use serializer when we need more control, customization, or are working with non-model data!#
+# but we use ModelSerializer when we are dealing with models in a standard CRUD context!#
+# Serializes categories with case-insensitive name validation.
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ['name','id']
 
     def validate_name(self, value):
+        # Normalize the name and enforce case-insensitive uniqueness.
         name = value.strip()
         qs = Category.objects.filter(name__iexact=name)
         if self.instance:
@@ -30,6 +32,7 @@ class CategorySerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Category with this name already exists.")
         return name
 
+# Serializes posts with related metadata and user-specific fields.
 class PostSerializer(serializers.ModelSerializer):
     urls = serializers.SerializerMethodField()
     author_name = serializers.SerializerMethodField()
@@ -52,6 +55,7 @@ class PostSerializer(serializers.ModelSerializer):
         read_only_fields = ['author_name','can_edit']
 
     def get_urls(self,obj):
+        # Build relative and absolute URLs for the post.
         request = self.context.get('request')
         relative_url = reverse('blog:api-v1:post-detail', args=[obj.pk])
         absolute_url = request.build_absolute_uri(relative_url) if request else None
@@ -61,9 +65,11 @@ class PostSerializer(serializers.ModelSerializer):
         }
     
     def get_author_name(self,obj):
+        # Format the author's first and last name.
         return f'{obj.author.first_name} {obj.author.last_name}'
 
     def get_author_social_links(self, obj):
+        # Expose the author's social links for the client UI.
         return {
             'facebook': obj.author.facebook_url,
             'twitter': obj.author.twitter_url,
@@ -72,6 +78,7 @@ class PostSerializer(serializers.ModelSerializer):
         }
 
     def get_user_reaction(self, obj):
+        # Return the current user's reaction value for this post.
         request = self.context.get('request')
         if not request or not request.user or not request.user.is_authenticated:
             return 0
@@ -82,6 +89,7 @@ class PostSerializer(serializers.ModelSerializer):
         return reaction.value if reaction else 0
 
     def get_can_edit(self, obj):
+        # Allow edits for staff or the post author.
         request = self.context.get('request')
         if not request or not request.user or not request.user.is_authenticated:
             return False
@@ -90,6 +98,7 @@ class PostSerializer(serializers.ModelSerializer):
         return obj.author and obj.author.user_id == request.user.id
 
     def get_previous_post(self, obj):
+        # Locate the previous post by publish/created date ordering.
         sort_date = obj.published_date or obj.created_date
         queryset = Post.objects.annotate(sort_date=Coalesce('published_date', 'created_date'))
         request = self.context.get('request')
@@ -104,6 +113,7 @@ class PostSerializer(serializers.ModelSerializer):
         return {'id': prev_post.id, 'title': prev_post.title}
 
     def get_next_post(self, obj):
+        # Locate the next post by publish/created date ordering.
         sort_date = obj.published_date or obj.created_date
         queryset = Post.objects.annotate(sort_date=Coalesce('published_date', 'created_date'))
         request = self.context.get('request')
@@ -118,10 +128,12 @@ class PostSerializer(serializers.ModelSerializer):
         return {'id': next_post.id, 'title': next_post.title}
 
     def get_excerpt(self, obj):
+        # Create a 30-word excerpt for list views.
         return Truncator(obj.content).words(30, truncate="...")
     
     #to_representation is used to only and only for showing the data differently!(not editing!)#
     def to_representation(self, instance):
+        # Shape list vs detail responses by removing fields.
         request = self.context.get('request')
         rep = super().to_representation(instance)
         if request.parser_context.get('kwargs').get('pk'):#this means that request is asking for post details,not post list!#
@@ -134,10 +146,12 @@ class PostSerializer(serializers.ModelSerializer):
         return rep
     
     def create(self, validated_data):#check that for creating the post,user is assigned automatically! #
+        # Attach the current user's profile as the author.
         validated_data['author'] = Profile.objects.get(user__id = self.context.get('request').user.id)
         return super().create(validated_data)
 
 
+# Serializes comments and enforces depth/rules.
 class CommentSerializer(serializers.ModelSerializer):
     post = serializers.PrimaryKeyRelatedField(queryset=Post.objects.all())
     author_id = serializers.IntegerField(read_only=True)
@@ -161,12 +175,14 @@ class CommentSerializer(serializers.ModelSerializer):
         read_only_fields = ["depth", "author_id", "author_name", "is_owner", "created_date"]
 
     def get_author_name(self, obj):
+        # Return the author's display name or anonymous name.
         if obj.author:
             full_name = f"{obj.author.first_name} {obj.author.last_name}".strip()
             return full_name or obj.author.user.email
         return obj.name
 
     def get_is_owner(self, obj):
+        # Check if the current user owns the comment.
         request = self.context.get("request")
         if not request or not request.user or not request.user.is_authenticated:
             return False
@@ -175,6 +191,7 @@ class CommentSerializer(serializers.ModelSerializer):
         return obj.author.user_id == request.user.id
 
     def validate(self, attrs):
+        # Validate parent depth, post approval, and friend-only rules.
         parent = attrs.get("parent")
         post = attrs.get("post")
         if parent:
@@ -199,11 +216,13 @@ class CommentSerializer(serializers.ModelSerializer):
         return attrs
 
     def validate_message(self, value):
+        # Prevent empty comment messages.
         if not value or not value.strip():
             raise serializers.ValidationError("Message cannot be empty.")
         return value
 
     def create(self, validated_data):
+        # Set depth and attach author or require a name.
         request = self.context.get("request")
         parent = validated_data.get("parent")
         validated_data["depth"] = parent.depth + 1 if parent else 0
@@ -214,6 +233,7 @@ class CommentSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
+# Serializes comment reports with related post/comment data.
 class CommentReportSerializer(serializers.ModelSerializer):
     reporter_id = serializers.IntegerField(read_only=True)
     reporter_name = serializers.SerializerMethodField()
@@ -238,27 +258,32 @@ class CommentReportSerializer(serializers.ModelSerializer):
         read_only_fields = ["status", "reporter_id", "reporter_name", "created_date"]
 
     def get_reporter_name(self, obj):
+        # Provide reporter display name or anonymous label.
         if obj.reporter:
             full_name = f"{obj.reporter.first_name} {obj.reporter.last_name}".strip()
             return full_name or obj.reporter.user.email
         return "anonymous"
 
     def get_comment_message(self, obj):
+        # Truncate the reported comment for previews.
         if not obj.comment:
             return ""
         return Truncator(obj.comment.message).chars(120, truncate="...")
 
     def get_post_id(self, obj):
+        # Expose the related post ID for admin UI.
         if not obj.comment or not obj.comment.post:
             return None
         return obj.comment.post_id
 
     def get_post_title(self, obj):
+        # Expose the related post title for admin UI.
         if not obj.comment or not obj.comment.post:
             return ""
         return obj.comment.post.title
 
     def create(self, validated_data):
+        # Attach reporter and prevent self/duplicate reports.
         request = self.context.get("request")
         if request and request.user and request.user.is_authenticated:
             validated_data["reporter"] = Profile.objects.get(user__id=request.user.id)
@@ -269,6 +294,7 @@ class CommentReportSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
+# Serializes post reports with reporter metadata.
 class PostReportSerializer(serializers.ModelSerializer):
     reporter_id = serializers.IntegerField(read_only=True)
     reporter_name = serializers.SerializerMethodField()
@@ -289,17 +315,20 @@ class PostReportSerializer(serializers.ModelSerializer):
         read_only_fields = ["status", "reporter_id", "reporter_name", "created_date"]
 
     def get_reporter_name(self, obj):
+        # Provide reporter display name or anonymous label.
         if obj.reporter:
             full_name = f"{obj.reporter.first_name} {obj.reporter.last_name}".strip()
             return full_name or obj.reporter.user.email
         return "anonymous"
 
     def get_post_title(self, obj):
+        # Expose the reported post title for admin UI.
         if not obj.post:
             return ""
         return obj.post.title
 
     def create(self, validated_data):
+        # Attach reporter and prevent self/duplicate reports.
         request = self.context.get("request")
         if request and request.user and request.user.is_authenticated:
             validated_data["reporter"] = Profile.objects.get(user__id=request.user.id)

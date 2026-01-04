@@ -17,10 +17,12 @@ class Command(BaseCommand):
     help = 'creating dummy users!'
 
     def __init__(self, *args, **kwargs):
+        # Initialize Faker instance for data generation.
         super(Command, self).__init__(*args, **kwargs)
         self.fake = Faker()
 
     def handle(self, *args, **options):
+        # Create a fake user, profile, and sample posts/categories.
         user = User.objects.create_user(email=self.fake.email(),password='Test@12345')
         profile = Profile.objects.get(user=user)
         profile.first_name = self.fake.first_name()
