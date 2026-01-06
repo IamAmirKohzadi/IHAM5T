@@ -2,6 +2,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
+from unittest.mock import patch
 
 from accounts.models import User
 
@@ -16,12 +17,14 @@ class TestAccountApiViews(TestCase):
         )
 
     @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")# stores emails in memory, which is perfect for tests!
-    def test_registration_success(self):
+    @patch("core.recaptcha.verify_recaptcha", return_value=(True, ""))
+    def test_registration_success(self, *_args):
         url = reverse("registration")
         payload = {
             "email": "new@test.com",
             "password": "TestPass123!",
             "password1": "TestPass123!",
+            "g-recaptcha-response": "test-token",
         }
         response = self.client.post(url, payload, format="json")
         self.assertEqual(response.status_code, 201)

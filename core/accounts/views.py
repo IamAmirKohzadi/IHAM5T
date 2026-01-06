@@ -9,10 +9,27 @@ from django.contrib.auth.views import (
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 
+from core.recaptcha import verify_recaptcha
+
 from .api.v1.permissions import RedirectAuthenticatedMixin
 
 from .forms import TemplatedPasswordResetForm
 
+
+# Login view that enforces reCAPTCHA for anonymous users.
+class CaptchaLoginView(LoginView):
+    template_name = "registration/login.html"
+
+    def post(self, request, *args, **kwargs):
+        # Require reCAPTCHA for unauthenticated login attempts.
+        if not request.user.is_authenticated:
+            token = request.POST.get("g-recaptcha-response")
+            is_valid, message = verify_recaptcha(token, request.META.get("REMOTE_ADDR"))
+            if not is_valid:
+                form = self.get_form()
+                form.add_error(None, message)
+                return self.form_invalid(form)
+        return super().post(request, *args, **kwargs)
 
 def signup_page(request):
     # Render the signup page unless the user is already authenticated.
@@ -25,7 +42,7 @@ def login_page(request, *args, **kwargs):
     # Serve the login view but send authenticated users to home.
     if request.user.is_authenticated:
         return redirect("website:index")
-    return LoginView.as_view(template_name="registration/login.html")(request, *args, **kwargs)
+    return CaptchaLoginView.as_view()(request, *args, **kwargs)
 
 
 @login_required
@@ -39,6 +56,17 @@ class TemplatedPasswordResetView(RedirectAuthenticatedMixin, PasswordResetView):
     form_class = TemplatedPasswordResetForm
     template_name = "registration/password_reset_form.html"
     success_url = reverse_lazy("password_reset_done")
+
+    def post(self, request, *args, **kwargs):
+        # Require reCAPTCHA for unauthenticated reset requests.
+        if not request.user.is_authenticated:
+            token = request.POST.get("g-recaptcha-response")
+            is_valid, message = verify_recaptcha(token, request.META.get("REMOTE_ADDR"))
+            if not is_valid:
+                form = self.get_form()
+                form.add_error(None, message)
+                return self.form_invalid(form)
+        return super().post(request, *args, **kwargs)
 
 
 # Password reset "done" page with auth redirect guard.

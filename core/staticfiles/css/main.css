@@ -3006,7 +3006,7 @@ body.mobile-nav-active #mobile-nav-toggle {
 }
 
 .about-banner {
-  background: url(../img/top-banner.jpg) center;
+  background: url(../img/top-banner.jpg) center no-repeat;
   background-size: cover;
 }
 
@@ -3266,9 +3266,10 @@ body.mobile-nav-active #mobile-nav-toggle {
 /* =================================== */
 /*============ Start Blog Home Styles  =============*/
 .blog-home-banner {
-  background: url(../img/blog/blog-home-banner.jpg) bottom;
-  background-size: cover;
-  padding: 130px 0px;
+  background: url(../img/blog/blog-home-banner.jpg) center no-repeat;
+  background-size: 90% auto;
+  min-height: 360px;
+  padding: 90px 0;
 }
 
 .blog-home-banner .primary-btn {

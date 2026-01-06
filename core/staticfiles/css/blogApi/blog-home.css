@@ -127,3 +127,19 @@
 		font-size: 13px;
 		margin-bottom: 8px;
 	}
+
+	.blog-home-banner {
+		background-position: center;
+		background-repeat: no-repeat;
+		background-size: 90% auto;
+		min-height: 360px;
+		padding: 90px 0;
+	}
+
+	@media (max-width: 767px) {
+		.blog-home-banner {
+			min-height: 240px;
+			padding: 60px 0;
+			background-size: 100% auto;
+		}
+	}

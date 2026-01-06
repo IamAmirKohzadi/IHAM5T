@@ -201,7 +201,9 @@
     <script src="{% static 'js/vendor/jquery-2.2.4.min.js' %}"></script>
     <script src="{% static 'js/popper.min.js' %}"></script>
     <script src="{% static 'js/vendor/bootstrap.min.js' %}"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBhOdIF3Y9382fqJYt5I_sswSrEw5eihAA"></script>
+    {% if google_maps_api_key %}
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}"></script>
+    {% endif %}
     <script src="{% static 'js/jquery-ui.js' %}"></script>
     <script src="{% static 'js/easing.min.js' %}"></script>
     <script src="{% static 'js/hoverIntent.js' %}"></script>

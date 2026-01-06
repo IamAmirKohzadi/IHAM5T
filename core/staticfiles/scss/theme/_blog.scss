@@ -5,9 +5,10 @@
 /*============ Start Blog Home Styles  =============*/
 
 .blog-home-banner {
-    background: url(../img/blog/blog-home-banner.jpg) bottom;
-    background-size: cover;
-    padding: 130px 0px;
+    background: url(../img/blog/blog-home-banner.jpg) center no-repeat;
+    background-size: 90% auto;
+    min-height: 360px;
+    padding: 90px 0;
     .primary-btn {
         border-radius: 0px;
         background: $white;

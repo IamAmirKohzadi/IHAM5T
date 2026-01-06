@@ -20,11 +20,17 @@ from mail_templated import send_mail,EmailMessage
 from jwt.exceptions import ExpiredSignatureError,InvalidSignatureError
 import jwt
 
+from core.recaptcha import verify_recaptcha
 # API endpoint to register new users and send activation emails.
 class RegistrationApiView(RedirectAuthenticatedApiMixin,TokenForUserMixin,generics.GenericAPIView):
     serializer_class = RegistrationSerializer
     def post(self, request, *args, **kwargs):
         # Validate input, create user, and email activation token.
+        if not request.user or not request.user.is_authenticated:
+            token = request.data.get("g-recaptcha-response")
+            is_valid, message = verify_recaptcha(token, request.META.get("REMOTE_ADDR"))
+            if not is_valid:
+                return Response({"detail": message}, status=status.HTTP_400_BAD_REQUEST)
         serializer = RegistrationSerializer(data = request.data)
         if serializer.is_valid():
             serializer.save()

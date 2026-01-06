@@ -76,6 +76,15 @@ window.addEventListener("load", function () {
     data.append("email", signupForm.email.value);
     data.append("password", signupForm.password.value);
     data.append("password1", signupForm.password1.value);
+    var captchaToken = "";
+    if (window.grecaptcha) {
+      captchaToken = window.grecaptcha.getResponse();
+    }
+    if (!captchaToken) {
+      showErrors(["Please complete the CAPTCHA."]);
+      return;
+    }
+    data.append("g-recaptcha-response", captchaToken);
 
     fetch(signupForm.action, {
       method: "POST",
@@ -92,11 +101,20 @@ window.addEventListener("load", function () {
       if (result.ok) {
         showSuccess("Account created. Check your email to activate.");
         signupForm.reset();
+        if (window.grecaptcha) {
+          window.grecaptcha.reset();
+        }
       } else {
         showErrors(normalizeErrors(result.payload));
+        if (window.grecaptcha) {
+          window.grecaptcha.reset();
+        }
       }
     }).catch(function () {
       showErrors(["Signup failed. Please try again."]);
+      if (window.grecaptcha) {
+        window.grecaptcha.reset();
+      }
     });
   });
 });

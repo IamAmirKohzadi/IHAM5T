@@ -42,13 +42,13 @@ INSTALLED_APPS = [
     'accounts',
     'blog',
     'website',
+    'friends',
     'rest_framework',
     'rest_framework.authtoken',
     'rest_framework_simplejwt',
     'django_filters',
-    'drf_yasg',
     'mail_templated',
-    'friends',
+    'drf_yasg',
 ]
 
 MIDDLEWARE = [
@@ -194,3 +194,9 @@ EMAIL_USE_TLS = False
 #django contrib auth setting
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
+
+GOOGLE_MAPS_API_KEY = "AIzaSyD2EKWgcstwm56c8VTvos7JF8A5_L6s4oU"
+
+# reCAPTCHA settings
+RECAPTCHA_SITE_KEY = "6Lepb0IsAAAAAK5h_04gkBNusP2HyuS0GCBAwnN7"
+RECAPTCHA_SECRET_KEY = "6Lepb0IsAAAAAI3_y4qhR58v8BpxY6gXMIz44b6w"

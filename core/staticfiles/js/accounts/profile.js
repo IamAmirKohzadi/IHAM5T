@@ -26,6 +26,9 @@ window.addEventListener("load", function () {
 		var friendRequestsCache = [];
 		var profileData = null;
 		var pendingDeleteId = null;
+		var resendCooldownKey = "profileResendCooldownUntil";
+		var resendCooldownMs = 2 * 60 * 1000;
+		var resendCooldownTimer = null;
 
 		function formatDateTime(value) {
 			if (!value) {
@@ -676,6 +679,71 @@ window.addEventListener("load", function () {
 			message.style.display = "block";
 		}
 
+		function getResendCooldownRemaining() {
+			var stored = window.localStorage ? window.localStorage.getItem(resendCooldownKey) : null;
+			var until = stored ? parseInt(stored, 10) : 0;
+			if (!until || Number.isNaN(until)) {
+				return 0;
+			}
+			var remaining = until - Date.now();
+			return remaining > 0 ? remaining : 0;
+		}
+
+		function formatCooldown(ms) {
+			var totalSeconds = Math.ceil(ms / 1000);
+			var minutes = Math.floor(totalSeconds / 60);
+			var seconds = totalSeconds % 60;
+			return minutes + ":" + String(seconds).padStart(2, "0");
+		}
+
+		function setResendCooldown() {
+			if (window.localStorage) {
+				window.localStorage.setItem(resendCooldownKey, String(Date.now() + resendCooldownMs));
+			}
+			applyResendCooldown();
+		}
+
+		function clearResendCooldown() {
+			if (window.localStorage) {
+				window.localStorage.removeItem(resendCooldownKey);
+			}
+		}
+
+		function applyResendCooldown() {
+			if (!resendButton) {
+				return;
+			}
+			if (!resendButton.dataset.originalText) {
+				resendButton.dataset.originalText = resendButton.textContent;
+			}
+			var remaining = getResendCooldownRemaining();
+			if (remaining > 0) {
+				resendButton.disabled = true;
+				resendButton.textContent = "Resend in " + formatCooldown(remaining);
+				if (!resendCooldownTimer) {
+					resendCooldownTimer = window.setInterval(function () {
+						var timeLeft = getResendCooldownRemaining();
+						if (timeLeft <= 0) {
+							clearResendCooldown();
+							resendButton.disabled = false;
+							resendButton.textContent = resendButton.dataset.originalText;
+							window.clearInterval(resendCooldownTimer);
+							resendCooldownTimer = null;
+							return;
+						}
+						resendButton.textContent = "Resend in " + formatCooldown(timeLeft);
+					}, 1000);
+				}
+				return;
+			}
+			resendButton.disabled = false;
+			resendButton.textContent = resendButton.dataset.originalText;
+			if (resendCooldownTimer) {
+				window.clearInterval(resendCooldownTimer);
+				resendCooldownTimer = null;
+			}
+		}
+
 		function openDeleteModal(postId) {
 			pendingDeleteId = postId;
 			document.getElementById("profile-delete-modal").style.display = "flex";
@@ -730,7 +798,17 @@ window.addEventListener("load", function () {
 		document.getElementById("profile-password-cancel").addEventListener("click", closePasswordModal);
 		var resendButton = document.getElementById("profile-resend-button");
 		if (resendButton) {
+			applyResendCooldown();
 			resendButton.addEventListener("click", function () {
+				if (getResendCooldownRemaining() > 0) {
+					applyResendCooldown();
+					return;
+				}
+				if (!profileData || !profileData.email) {
+					showResendMessage("Email address not available.");
+					return;
+				}
+				setResendCooldown();
 				showResendMessage("");
 				fetch(resendActivationUrl, {
 					method: "POST",
@@ -739,7 +817,7 @@ window.addEventListener("load", function () {
 						"Content-Type": "application/json",
 						"X-CSRFToken": getCookie("csrftoken")
 					},
-					body: JSON.stringify({ email: profileData ? profileData.email : "" })
+					body: JSON.stringify({ email: profileData.email })
 				})
 					.then(function (response) {
 						return response.json().then(function (data) {
