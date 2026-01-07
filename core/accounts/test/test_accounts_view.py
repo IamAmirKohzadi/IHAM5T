@@ -17,7 +17,7 @@ class TestAccountApiViews(TestCase):
         )
 
     @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")# stores emails in memory, which is perfect for tests!
-    @patch("core.recaptcha.verify_recaptcha", return_value=(True, ""))
+    @patch("accounts.api.v1.views.verify_recaptcha", return_value=(True, ""))
     def test_registration_success(self, *_args):
         url = reverse("registration")
         payload = {
