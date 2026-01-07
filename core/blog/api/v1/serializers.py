@@ -18,9 +18,11 @@ from django.utils.text import Truncator
 # but we use ModelSerializer when we are dealing with models in a standard CRUD context!#
 # Serializes categories with case-insensitive name validation.
 class CategorySerializer(serializers.ModelSerializer):
+    post_count = serializers.SerializerMethodField()
+
     class Meta:
         model = Category
-        fields = ['name','id']
+        fields = ['name','id','description','image','post_count']
 
     def validate_name(self, value):
         # Normalize the name and enforce case-insensitive uniqueness.
@@ -31,6 +33,10 @@ class CategorySerializer(serializers.ModelSerializer):
         if qs.exists():
             raise serializers.ValidationError("Category with this name already exists.")
         return name
+
+    def get_post_count(self, obj):
+        # Count published posts for the category.
+        return obj.posts.filter(status=True).count()
 
 # Serializes posts with related metadata and user-specific fields.
 class PostSerializer(serializers.ModelSerializer):

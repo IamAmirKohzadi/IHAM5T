@@ -2,12 +2,9 @@
 {% load static %}
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/blogApi/blog-home.css' %}">
-<div id="blog-home-config"
-	data-post-list-url="{% url 'blog:api-v1:post-list' %}"
-	data-blog-home-url="{% url 'website:blog-home' %}"
-	data-default-image="{% static 'img/blog/default.jpg' %}"
-	data-category-url="{% url 'blog:api-v1:category-list' %}"
-	style="display:none;"></div>
+<div id="blog-home-config" data-post-list-url="{% url 'blog:api-v1:post-list' %}"
+	data-blog-home-url="{% url 'website:blog-home' %}" data-default-image="{% static 'img/default.jpg' %}"
+	data-category-url="{% url 'blog:api-v1:category-list' %}" style="display:none;"></div>
 
 <!-- start banner Area -->
 <section class="banner-area relative blog-home-banner" id="home">
@@ -16,7 +13,7 @@
 		<div class="row d-flex align-items-center justify-content-center">
 			<div class="about-content blog-header-content col-lg-12">
 				<h1 class="text-white">
-					Dude You’re Getting
+					Dude Youƒ?Tre Getting
 					a Telescope
 				</h1>
 				<p class="text-white">
@@ -42,7 +39,7 @@
 						<a href="#" target="_blank">
 							<div class="thumb">
 								<img class="content-image img-fluid d-block mx-auto"
-									src="{% static 'img/blog/cat-widget1.jpg' %}" alt="">
+									src="{% static 'img/default.jpg' %}" alt="">
 							</div>
 							<div class="content-details">
 								<h4 class="content-title mx-auto text-uppercase">Social life</h4>
@@ -60,7 +57,7 @@
 						<a href="#" target="_blank">
 							<div class="thumb">
 								<img class="content-image img-fluid d-block mx-auto"
-									src="{% static 'img/blog/cat-widget2.jpg' %}" alt="">
+									src="{% static 'img/default.jpg' %}" alt="">
 							</div>
 							<div class="content-details">
 								<h4 class="content-title mx-auto text-uppercase">Politics</h4>
@@ -78,7 +75,7 @@
 						<a href="#" target="_blank">
 							<div class="thumb">
 								<img class="content-image img-fluid d-block mx-auto"
-									src="{% static 'img/blog/cat-widget3.jpg' %}" alt="">
+									src="{% static 'img/default.jpg' %}" alt="">
 							</div>
 							<div class="content-details">
 								<h4 class="content-title mx-auto text-uppercase">Food</h4>
@@ -131,7 +128,7 @@
 												class="fa fa-thumbs-down"></i>
 											<span class="post-dislike-count">0</span></a>
 									</span>
-									<div class="post-reaction-message" style="display:none;"></div>
+								<div class="post-reaction-message" style="display:none;"></div>
 								</p>
 							</div>
 						</div>

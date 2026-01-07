@@ -3,8 +3,8 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/blogApi/blog-single.css' %}">
 <div id="blog-single-config"
-	data-default-image="{% static 'img/blog/default.jpg' %}"
-	data-default-gallery-image="{% static 'img/blog/default.jpg' %}"
+	data-default-image="{% static 'img/default.jpg' %}"
+	data-default-gallery-image="{% static 'img/default.jpg' %}"
 	data-post-list-url="{% url 'blog:api-v1:post-list' %}"
 	data-comments-url="{% url 'blog:api-v1:comment-list' %}"
 	data-comment-report-url="{% url 'blog:api-v1:comment-report-list' %}"
@@ -46,7 +46,7 @@
 				<div class="single-post row">
 					<div class="col-lg-12">
 						<div class="feature-img">
-							<img class="img-fluid" id="post-image" src="{% static 'img/blog/feature-img1.jpg' %}"
+							<img class="img-fluid" id="post-image" src="{% static 'img/default.jpg' %}"
 								alt="">
 						</div>
 					</div>
@@ -99,11 +99,11 @@
 						<div class="row mt-30 mb-30">
 							<div class="col-6" id="post-image-2-wrap">
 								<img class="img-fluid post-gallery-img" id="post-image-2"
-									src="{% static 'img/blog/default.jpg' %}" alt="">
+									src="{% static 'img/default.jpg' %}" alt="">
 							</div>
 							<div class="col-6" id="post-image-3-wrap">
 								<img class="img-fluid post-gallery-img" id="post-image-3"
-									src="{% static 'img/blog/default.jpg' %}" alt="">
+									src="{% static 'img/default.jpg' %}" alt="">
 							</div>
 							<div class="col-lg-12 mt-30">
 								<p id="post-extra-content"></p>
@@ -117,7 +117,7 @@
 							class="col-lg-6 col-md-6 col-12 nav-left nav-hidden flex-row d-flex justify-content-start align-items-center">
 							<div class="thumb">
 								<a href="#" id="post-prev-thumb"><img class="img-fluid nav-thumb-img"
-										src="{% static 'img/blog/prev.jpg' %}" alt=""></a>
+										src="{% static 'img/default.jpg' %}" alt=""></a>
 							</div>
 							<div class="arrow">
 								<a href="#" id="post-prev-arrow"><span class="lnr text-white lnr-arrow-left"></span></a>
@@ -137,7 +137,7 @@
 							</div>
 							<div class="thumb">
 								<a href="#" id="post-next-thumb"><img class="img-fluid nav-thumb-img"
-										src="{% static 'img/blog/next.jpg' %}" alt=""></a>
+										src="{% static 'img/default.jpg' %}" alt=""></a>
 							</div>
 						</div>
 					</div>

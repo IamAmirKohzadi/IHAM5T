@@ -27,6 +27,8 @@ class Post(models.Model):
     
 class Category(models.Model):
     name = models.CharField(max_length=255,unique=True)
+    description = models.TextField(blank=True)
+    image = models.ImageField(null=True, blank=True)
 
     class Meta:
         constraints = [

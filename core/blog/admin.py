@@ -14,7 +14,9 @@ class PostAdmin(admin.ModelAdmin):
 
     
 admin.site.register(Post,PostAdmin)
-admin.site.register(Category)
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ["id", "name", "description", "image"]
 
 
 class CommentAdmin(admin.ModelAdmin):

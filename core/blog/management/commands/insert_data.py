@@ -33,8 +33,16 @@ class Command(BaseCommand):
         categories = list(Category.objects.all())
         if not categories:
             for name in DEFAULT_CATEGORY_NAMES:
-                Category.objects.get_or_create(name=name)
+                category, _created = Category.objects.get_or_create(name=name)
+                if not category.description:
+                    category.description = self.fake.sentence()
+                    category.save(update_fields=["description"])
             categories = list(Category.objects.all())
+        else:
+            for category in categories:
+                if not category.description:
+                    category.description = self.fake.sentence()
+                    category.save(update_fields=["description"])
 
         for i in range(5):
             post = Post.objects.create(

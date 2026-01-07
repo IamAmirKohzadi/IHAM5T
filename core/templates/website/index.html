@@ -1,17 +1,20 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
+<div id="top-stories-config" data-post-list-url="{% url 'blog:api-v1:post-list' %}"
+	data-blog-home-url="{% url 'website:blog-home' %}" data-category-url="{% url 'blog:api-v1:category-list' %}"
+	data-default-image="{% static 'img/default.jpg' %}" style="display:none;"></div>
 <!-- start banner Area -->
 <section class="banner-area relative">
 	<div class="overlay overlay-bg"></div>
 	<div class="container">
 		<div class="row fullscreen align-items-center justify-content-between">
 			<div class="col-lg-6 col-md-6 banner-left">
-				<h6 class="text-white">Away from monotonous life</h6>
-				<h1 class="text-white">Magical Travel</h1>
+				<h6 class="text-white">truth about everything!</h6>
+				<h1 class="text-white">PulseWire News</h1>
 				<p class="text-white">
-					If you are looking at blank cassettes on the web, you may be very confused at the difference in
-					price. You may see some for as low as $.17 each.
+					A fast, credible newsroom that combines local reporting with global coverage, delivering clear
+					updates, expert analysis, and human‑centered stories.
 				</p>
 
 			</div>
@@ -27,52 +30,13 @@
 		<div class="row d-flex justify-content-center">
 			<div class="menu-content pb-70 col-lg-8">
 				<div class="title text-center">
-					<h1 class="mb-10">Popular Destinations</h1>
-					<p>We all live in an age that belongs to the young at heart. Life that is becoming extremely fast,
-						day.</p>
+					<h1 class="mb-10">Top Stories</h1>
+					<p>Editor picks and most-read headlines from across the newsroom.</p>
 				</div>
 			</div>
 		</div>
-		<div class="row">
-			<div class="col-lg-4">
-				<div class="single-destination relative">
-					<div class="thumb relative">
-						<div class="overlay overlay-bg"></div>
-						<img class="img-fluid" src="{% static 'img/d1.jpg' %}" alt="">
-					</div>
-					<div class="desc">
-						<a href="#" class="price-btn">$150</a>
-						<h4>Mountain River</h4>
-						<p>Paraguay</p>
-					</div>
-				</div>
-			</div>
-			<div class="col-lg-4">
-				<div class="single-destination relative">
-					<div class="thumb relative">
-						<div class="overlay overlay-bg"></div>
-						<img class="img-fluid" src="{% static 'img/d2.jpg' %}" alt="">
-					</div>
-					<div class="desc">
-						<a href="#" class="price-btn">$250</a>
-						<h4>Dream City</h4>
-						<p>Paris</p>
-					</div>
-				</div>
-			</div>
-			<div class="col-lg-4">
-				<div class="single-destination relative">
-					<div class="thumb relative">
-						<div class="overlay overlay-bg"></div>
-						<img class="img-fluid" src="{% static 'img/d3.jpg' %}" alt="">
-					</div>
-					<div class="desc">
-						<a href="#" class="price-btn">$350</a>
-						<h4>Cloud Mountain</h4>
-						<p>Sri Lanka</p>
-					</div>
-				</div>
-			</div>
+		<div class="row" id="top-stories-list">
+			<div class="col-12 text-center" id="top-stories-loading">Loading top stories...</div>
 		</div>
 	</div>
 </section>
@@ -85,65 +49,28 @@
 		<div class="row d-flex justify-content-center">
 			<div class="menu-content pb-70 col-lg-9">
 				<div class="title text-center">
-					<h1 class="mb-10">Other issues we can help you with</h1>
-					<p>We all live in an age that belongs to the young at heart. Life that is.</p>
+					<h1 class="mb-10">Topics and Categories!</h1>
+					<p>Explore the most popular categories from our newsroom right now.</p>
 				</div>
 			</div>
 		</div>
 		<div class="row">
-			<div class="col-lg-3 col-md-6">
-				<div class="single-other-issue">
-					<div class="thumb">
-						<img class="img-fluid" src="{% static 'img/o1.jpg' %}" alt="">
-					</div>
-					<a href="#">
-						<h4>Rent a Car</h4>
-					</a>
-					<p>
-						The preservation of human life is the ultimate value, a pillar of ethics and the foundation.
-					</p>
-				</div>
-			</div>
-			<div class="col-lg-3 col-md-6">
-				<div class="single-other-issue">
-					<div class="thumb">
-						<img class="img-fluid" src="{% static 'img/o2.jpg' %}" alt="">
-					</div>
-					<a href="#">
-						<h4>Cruise Booking</h4>
-					</a>
-					<p>
-						I was always somebody who felt quite sorry for myself, what I had not got compared.
-					</p>
-				</div>
-			</div>
-			<div class="col-lg-3 col-md-6">
-				<div class="single-other-issue">
-					<div class="thumb">
-						<img class="img-fluid" src="{% static 'img/o3.jpg' %}" alt="">
-					</div>
-					<a href="#">
-						<h4>To Do List</h4>
-					</a>
-					<p>
-						The following article covers a topic that has recently moved to center stage–at least it seems.
-					</p>
-				</div>
-			</div>
-			<div class="col-lg-3 col-md-6">
-				<div class="single-other-issue">
-					<div class="thumb">
-						<img class="img-fluid" src="{% static 'img/o4.jpg' %}" alt="">
-					</div>
-					<a href="#">
-						<h4>Food Features</h4>
-					</a>
-					<p>
-						There are many kinds of narratives and organizing principles. Science is driven by evidence.
-					</p>
-				</div>
-			</div>
+			<div class="col-12 text-center" id="home-category-loading">Loading categories...</div>
 		</div>
+		<div class="row" id="home-category-list"></div>
+		<template id="home-category-template">
+			<div class="col-lg-3 col-md-6">
+				<div class="single-other-issue">
+					<div class="thumb">
+						<img class="img-fluid category-image" src="" alt="">
+					</div>
+					<a href="#" class="category-link">
+						<h4 class="category-name"></h4>
+					</a>
+					<p class="category-description"></p>
+				</div>
+			</div>
+		</template>
 	</div>
 </section>
 <!-- End other-issue Area -->
@@ -160,17 +87,17 @@
 				<h1>
 					Did not find your Package? <br>
 					Feel free to ask us. <br>
-					We‘ll make it for you
+					Weƒ?~ll make it for you
 				</h1>
 				<p>
-					inappropriate behavior is often laughed off as “boys will be boys,” women face higher conduct
-					standards especially in the workplace. That’s why it’s crucial that, as women, our behavior on the
+					inappropriate behavior is often laughed off as ƒ?oboys will be boys,ƒ?? women face higher conduct
+					standards especially in the workplace. Thatƒ?Ts why itƒ?Ts crucial that, as women, our behavior on the
 					job is beyond reproach. inappropriate behavior is often laughed.
 				</p>
 				<a href="#" class="primary-btn text-uppercase">request custom price</a>
 			</div>
 			<div class="col-lg-6 col-md-12 home-about-right no-padding">
-				<img class="img-fluid" src="{% static 'img/about-img.jpg' %}" alt="">
+				<img class="img-fluid" src="{% static 'img/default.jpg' %}" alt="">
 			</div>
 		</div>
 	</div>
@@ -185,167 +112,35 @@
 			<div class="menu-content pb-60 col-lg-9">
 				<div class="title text-center">
 					<h1 class="mb-10">Latest from Our Blog</h1>
-					<p>With the exception of Nietzsche, no other madman has contributed so much to human sanity as has.
+					<p>You want to know about our brilliant writers?Check these posts out!
 					</p>
 				</div>
 			</div>
 		</div>
 		<div class="row">
-			<div class="active-recent-blog-carusel">
-				<div class="single-recent-blog-post item">
-					<div class="thumb">
-						<img class="img-fluid" src="{% static 'img/b1.jpg' %}" alt="">
-					</div>
-					<div class="details">
-						<div class="tags">
-							<ul>
-								<li>
-									<a href="#">Travel</a>
-								</li>
-								<li>
-									<a href="#">Life Style</a>
-								</li>
-							</ul>
-						</div>
-						<a href="#">
-							<h4 class="title">Low Cost Advertising</h4>
-						</a>
-						<p>
-							Acres of Diamonds… you’ve read the famous story, or at least had it related to you. A
-							farmer.
-						</p>
-						<h6 class="date">31st January,2018</h6>
-					</div>
-				</div>
-				<div class="single-recent-blog-post item">
-					<div class="thumb">
-						<img class="img-fluid" src="{% static 'img/b2.jpg' %}" alt="">
-					</div>
-					<div class="details">
-						<div class="tags">
-							<ul>
-								<li>
-									<a href="#">Travel</a>
-								</li>
-								<li>
-									<a href="#">Life Style</a>
-								</li>
-							</ul>
-						</div>
-						<a href="#">
-							<h4 class="title">Creative Outdoor Ads</h4>
-						</a>
-						<p>
-							Acres of Diamonds… you’ve read the famous story, or at least had it related to you. A
-							farmer.
-						</p>
-						<h6 class="date">31st January,2018</h6>
-					</div>
-				</div>
-				<div class="single-recent-blog-post item">
-					<div class="thumb">
-						<img class="img-fluid" src="{% static 'img/b3.jpg' %}" alt="">
-					</div>
-					<div class="details">
-						<div class="tags">
-							<ul>
-								<li>
-									<a href="#">Travel</a>
-								</li>
-								<li>
-									<a href="#">Life Style</a>
-								</li>
-							</ul>
-						</div>
-						<a href="#">
-							<h4 class="title">It's Classified How To Utilize Free</h4>
-						</a>
-						<p>
-							Acres of Diamonds… you’ve read the famous story, or at least had it related to you. A
-							farmer.
-						</p>
-						<h6 class="date">31st January,2018</h6>
-					</div>
-				</div>
-				<div class="single-recent-blog-post item">
-					<div class="thumb">
-						<img class="img-fluid" src="{% static 'img/b1.jpg' %}" alt="">
-					</div>
-					<div class="details">
-						<div class="tags">
-							<ul>
-								<li>
-									<a href="#">Travel</a>
-								</li>
-								<li>
-									<a href="#">Life Style</a>
-								</li>
-							</ul>
-						</div>
-						<a href="#">
-							<h4 class="title">Low Cost Advertising</h4>
-						</a>
-						<p>
-							Acres of Diamonds… you’ve read the famous story, or at least had it related to you. A
-							farmer.
-						</p>
-						<h6 class="date">31st January,2018</h6>
-					</div>
-				</div>
-				<div class="single-recent-blog-post item">
-					<div class="thumb">
-						<img class="img-fluid" src="{% static 'img/b2.jpg' %}" alt="">
-					</div>
-					<div class="details">
-						<div class="tags">
-							<ul>
-								<li>
-									<a href="#">Travel</a>
-								</li>
-								<li>
-									<a href="#">Life Style</a>
-								</li>
-							</ul>
-						</div>
-						<a href="#">
-							<h4 class="title">Creative Outdoor Ads</h4>
-						</a>
-						<p>
-							Acres of Diamonds… you’ve read the famous story, or at least had it related to you. A
-							farmer.
-						</p>
-						<h6 class="date">31st January,2018</h6>
-					</div>
-				</div>
-				<div class="single-recent-blog-post item">
-					<div class="thumb">
-						<img class="img-fluid" src="{% static 'img/b3.jpg' %}" alt="">
-					</div>
-					<div class="details">
-						<div class="tags">
-							<ul>
-								<li>
-									<a href="#">Travel</a>
-								</li>
-								<li>
-									<a href="#">Life Style</a>
-								</li>
-							</ul>
-						</div>
-						<a href="#">
-							<h4 class="title">It's Classified How To Utilize Free</h4>
-						</a>
-						<p>
-							Acres of Diamonds… you’ve read the famous story, or at least had it related to you. A
-							farmer.
-						</p>
-						<h6 class="date">31st January,2018</h6>
-					</div>
-				</div>
-
+			<div class="active-recent-blog-carusel" id="latest-posts-carousel">
+				<div class="col-12 text-center" id="latest-posts-loading">Loading latest posts...</div>
 			</div>
 		</div>
+		<template id="latest-post-template">
+			<div class="single-recent-blog-post item">
+				<div class="thumb">
+					<img class="img-fluid latest-post-image" src="" alt="">
+				</div>
+				<div class="details">
+					<div class="tags latest-post-tags">
+						<ul class="latest-post-categories"></ul>
+					</div>
+					<a class="latest-post-link" href="#">
+						<h4 class="title latest-post-title"></h4>
+					</a>
+					<p class="latest-post-excerpt"></p>
+					<h6 class="date latest-post-date"></h6>
+				</div>
+			</div>
+		</template>
 	</div>
 </section>
 <!-- End recent-blog Area -->
+<script src="{% static 'js/website/index.js' %}"></script>
 {% endblock %}
