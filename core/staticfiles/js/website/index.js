@@ -135,7 +135,7 @@
 		return $card;
 	}
 
-	function initLatestCarousel($carousel) {
+	function initLatestCarousel($carousel, itemCount) {
 		if (!$carousel.length || !$.fn.owlCarousel) {
 			return;
 		}
@@ -145,14 +145,17 @@
 			$carousel.find(".owl-stage-outer").children().unwrap();
 			$carousel.find(".owl-item").children().unwrap();
 		}
+		var loopEnabled = itemCount > 3;
+		var dotsEnabled = itemCount > 1;
+		var autoplayEnabled = itemCount > 1;
 		$carousel.owlCarousel({
 			items: 3,
-			loop: true,
+			loop: loopEnabled,
 			margin: 30,
-			dots: true,
+			dots: dotsEnabled,
 			autoplayHoverPause: true,
 			smartSpeed: 500,
-			autoplay: true,
+			autoplay: autoplayEnabled,
 			responsive: {
 				0: {
 					items: 1
@@ -227,7 +230,7 @@
 				}
 			});
 			$carousel.html(items.join(""));
-			initLatestCarousel($carousel);
+			initLatestCarousel($carousel, items.length);
 		}).fail(function () {
 			if ($loading.length) {
 				$loading.text("Unable to load latest posts right now.");
