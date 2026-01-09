@@ -102,6 +102,9 @@ docker compose up --build
 
 Apply database migrations:
 ```
+docker compose exec backend python manage.py makemigrations
+```
+```
 docker compose exec backend python manage.py migrate
 ```
 
@@ -130,12 +133,21 @@ pip install -r requirements.txt
 
 Apply migrations:
 ```
+python manage.py makemigrations
+```
+```
 python manage.py migrate
 ```
 
 Run the development server:
 ```
 python manage.py runserver
+```
+
+## Dummy Data (Faker Seed)
+Generate sample users, categories, and posts:
+```
+python manage.py insert_data
 ```
 
 ## Performance Testing (Locust)
@@ -168,3 +180,14 @@ Swagger UI endpoints (admin restricted):
 - /redoc/
 
 These interfaces document and test all REST API endpoints for frontend integration.
+
+
+## Academic Context
+- Degree: Computer Science Engineering BSc  
+- University: University of Pécs  
+- Faculty: Engineering and Information Technology  
+- Supervisor: Lénárt Anett  
+- Academic Year: 2025/2026  
+
+This project was developed as part of the bachelor diploma thesis requirements said above.
+

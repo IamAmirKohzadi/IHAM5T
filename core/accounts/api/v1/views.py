@@ -127,7 +127,7 @@ class TestEmailSend(TokenForUserMixin,generics.GenericAPIView):
     
 
 # Confirms an activation token and renders HTML or JSON status.
-class ActivationApiView(RedirectAuthenticatedApiMixin, APIView):
+class ActivationApiView(APIView):
     renderer_classes = [TemplateHTMLRenderer, JSONRenderer]
 
     def get(self, request, token, *args, **kwargs):
