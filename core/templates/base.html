@@ -95,6 +95,12 @@
         </div>
     </header><!-- #header -->
 
+    {% if missing_config_keys %}
+    <div class="alert alert-warning mb-0 text-center" role="alert">
+        Missing configuration: {{ missing_config_keys|join:", " }}. Update your `.env` file.
+    </div>
+    {% endif %}
+
     {% block content %}
 
     {% endblock %}

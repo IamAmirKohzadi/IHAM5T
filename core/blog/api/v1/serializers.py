@@ -218,7 +218,9 @@ class CommentSerializer(serializers.ModelSerializer):
                     if profile and not Friendship.objects.filter(
                         Q(user_a=profile, user_b=post_author) | Q(user_a=post_author, user_b=profile)
                     ).exists():
-                        raise serializers.ValidationError("Only friends can comment on this post.")
+                        raise serializers.ValidationError(
+                            "You should be friend with user in order to comment on their post."
+                        )
         return attrs
 
     def validate_message(self, value):

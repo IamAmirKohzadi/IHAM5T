@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -20,11 +21,21 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
+# Load local environment variables from .env when present.
+env_path = BASE_DIR / ".env"
+if env_path.exists():
+    for line in env_path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
+
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-08t#174wf_75ch0*z&_onq*t_q2)q&+y3exmv1vwer7n91j++r'
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-insecure-placeholder")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DJANGO_DEBUG", "True").lower() in ("1", "true", "yes")
 
 ALLOWED_HOSTS = ['backend',
                  '127.0.0.1',]
@@ -195,8 +206,8 @@ EMAIL_USE_TLS = False
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 
-GOOGLE_MAPS_API_KEY = "AIzaSyD2EKWgcstwm56c8VTvos7JF8A5_L6s4oU"
+GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY", "")
 
 # reCAPTCHA settings
-RECAPTCHA_SITE_KEY = "6Lepb0IsAAAAAK5h_04gkBNusP2HyuS0GCBAwnN7"
-RECAPTCHA_SECRET_KEY = "6Lepb0IsAAAAAI3_y4qhR58v8BpxY6gXMIz44b6w"
+RECAPTCHA_SITE_KEY = os.getenv("RECAPTCHA_SITE_KEY", "")
+RECAPTCHA_SECRET_KEY = os.getenv("RECAPTCHA_SECRET_KEY", "")

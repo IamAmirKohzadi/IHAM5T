@@ -10,6 +10,12 @@
 <body>
   <div class="login-box">
     <h2>Login</h2>
+    {% if missing_config_keys %}
+    <div class="config-warning"
+      style="margin-bottom:12px;color:#7a4e00;background:#fff3cd;border:1px solid #ffeeba;padding:8px;border-radius:4px;font-size:12px;text-align:left;">
+      Missing configuration: {{ missing_config_keys|join:", " }}. Update your `.env` file.
+    </div>
+    {% endif %}
     <form method="post" action="{% url 'login' %}">
       {% csrf_token %}
       {{ form.as_p }}

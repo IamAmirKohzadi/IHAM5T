@@ -1,180 +1,156 @@
-# IHAM5T – Advanced Blog Management System
-**Advanced Blog Management System with User Authentication and Content Recommendation**
+# IHAM5T - Advanced Blog Management System
+Advanced Blog Management System with User Authentication and Content Recommendation
 
-## 📌 Overview
-IHAM5T is a full-stack **blog management system** developed as a **Bachelor Diploma Project** at the **University of Pécs**.
-The system provides secure user authentication, blog content management, social interactions, and rule-based content discovery features through a **RESTful API** built with **Django 5** and **Django REST Framework (DRF)**.
+## Overview
+IHAM5T is a full-stack blog and news platform developed as a bachelor diploma project at the University of Pecs.
+It provides secure user authentication, blog content management, social interactions, and rule-based content discovery
+through a REST API built with Django 5 and Django REST Framework (DRF).
 
-The project follows modern backend engineering practices, including modular architecture, token-based authentication, API documentation, automated testing, performance testing, and containerized deployment.
+The project uses a modular Django architecture, automated tests, API documentation, performance testing, and a
+containerized development environment.
 
----
-
-## ✨ Main Features
+## Main Features
 - User registration, login, and authentication using JWT
-- Role-based access control
+- Role-based access control and email verification
 - Blog post creation, editing, and deletion
-- Categories, comments, reactions (likes), and reports
-- Social features (friends and follow system)
+- Categories, comments, reactions, and reports
+- Social features (friends and friend requests)
 - Rule-based content discovery (popular posts, top authors, category filtering)
-- RESTful API for all core features
+- REST API for all core features
 - API documentation using Swagger (OpenAPI)
 - Automated tests
 - Performance testing with Locust
 - Dockerized development environment
 
----
-
-## 🧰 Technology Stack
-**Backend**
-- Python 3
-- Django 5
+## Technology Stack
+Backend
+- Python 3.11
+- Django 5.2
 - Django REST Framework (DRF)
 - Simple JWT
-- PostgreSQL
-- Redis
+- SQLite (default development database)
+- mail_templated
+- django-filter
+- drf-yasg
 
-**DevOps & Tools**
-- Docker & Docker Compose
+DevOps and Tools
+- Docker and Docker Compose
 - Locust (load testing)
 - SMTP4Dev (email testing)
-- Swagger / OpenAPI (drf-yasg)
 
----
+## Configuration
+Create a `.env` file in the project root based on `.env.example` and fill in your own keys.
+These values are intentionally not committed to GitHub.
 
-## 🏗️ Project Architecture
-The project follows a **modular Django architecture**, where each major feature is implemented as a separate app with its own API layer.
-
----
-
-## Core Project Tree
+## Project Structure
+```
 IHAM5T/
-├── core/
-│   ├── api/
-│   ├── settings.py
-│   ├── urls.py
-│   └── locust/
-├── accounts/
-│   ├── api/
-│   └── tests/
-├── blog/
-│   ├── api/
-│   └── tests/
-├── friends/
-│   ├── api/
-│   └── tests/
-├── website/
-├── docker-compose.yml
-├── Dockerfile
-├── requirements.txt
-└── manage.py
+  core/
+    core/
+    accounts/
+    blog/
+    friends/
+    website/
+    templates/
+    staticfiles/
+    manage.py
+  docker-compose.yml
+  dockerfile
+  requirements.txt
+  README.md
+```
 
-
----
-
-
-## 🔌 API Structure
+## API Structure
 Each Django app exposes a dedicated REST API module.
 
-### 🔐 Accounts API (`accounts/api/`)
+Accounts API (accounts/api/v1)
 - User registration and authentication
-- JWT token generation
-- User profile management
+- JWT token generation and verification
+- Profile management and password change
 
-### 📝 Blog API (`blog/api/`)
+Blog API (blog/api/v1)
 - Blog post CRUD operations
 - Categories and content organization
-- Comments and reactions
-- Popular content discovery
+- Comments, reactions, and reports
+- Popular content discovery and top author
 
-### 👥 Friends API (`friends/api/`)
-- Friend requests
-- Follow and unfollow functionality
-- Social interactions
+Friends API (friends/api/v1)
+- Friend requests and approvals
+- Friendship listing and removal
 
 All APIs return JSON responses and follow REST principles.
 
----
-
-## ⚙️ Environment Configuration
-Create a `.env` file in the project root with the required environment variables:
-
-```env
-SECRET_KEY=your-secret-key
-DEBUG=True
-
-POSTGRES_DB=iham5t
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
-POSTGRES_HOST=db
-POSTGRES_PORT=5432
-
-REDIS_HOST=redis
-REDIS_PORT=6379
-
-
----
-
-
-## 🐳 Running the Project (Docker – Recommended)
-The recommended way to run the project is using Docker and Docker Compose.
-
+## Running the Project (Docker - Recommended)
 Start the containers:
-```bash
-docker-compose up --build
-Apply database migrations:docker-compose exec backend python manage.py makemigrations/migrate
-Create a superuser (inside the backend service):docker-compose exec backend python manage.py createsuperuser
-Backend will be available at:http://localhost:8000
-SMTP4Dev (email testing) will be available at:http://localhost:5000
+```
+docker compose up --build
+```
 
+Apply database migrations:
+```
+docker compose exec backend python manage.py migrate
+```
 
----
+Create a superuser:
+```
+docker compose exec backend python manage.py createsuperuser
+```
 
+Backend will be available at:
+http://localhost:8000
 
-🖥️ Running Locally (Without Docker):
-To run the project locally without Docker,Create and activate a virtual environment:
+SMTP4Dev (email testing) will be available at:
+http://localhost:5000
+
+## Running Locally (Without Docker)
+Create and activate a virtual environment:
+```
 python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-Install dependencies:pip install -r requirements.txt
-Apply migrations:python manage.py makemigrations/migrate
-Run the development server:python manage.py runserver
+venv\Scripts\activate
+```
 
+Install dependencies:
+```
+pip install -r requirements.txt
+```
 
+Apply migrations:
+```
+python manage.py migrate
+```
 
----
+Run the development server:
+```
+python manage.py runserver
+```
 
-
-## 🚀 Performance Testing (Locust)
+## Performance Testing (Locust)
 This project includes Locust services in Docker Compose:
-- `master` (Locust web UI)
-- `worker` (load generator)
-Locust configuration file:core/locust/locustfile.py
+- master (Locust web UI)
+- worker (load generator)
 
-Start Locust master + worker:
-```bash
-docker-compose up master worker
-Backend will be available at:http://localhost:8089
+Start Locust master and worker:
+```
+docker compose up master worker
+```
 
+Locust UI will be available at:
+http://localhost:8089
 
----
+## Running Tests
+Run all tests:
+```
+python manage.py test
+```
 
-🧪 Running Tests
-Automated tests are implemented for each application module.
-Run all tests using:python manage.py test
 Test coverage includes:
--User authentication and authorization
--Blog content management
--Social features and interactions
+- Authentication and authorization
+- Blog content management
+- Social features and interactions
 
+## API Documentation
+Swagger UI endpoints (admin restricted):
+- /swagger/
+- /redoc/
 
----
-
-📚 API Documentation
-Interactive API documentation is available using Swagger (OpenAPI).
-Swagger UI endpoints(admin restricted):
--/swagger/
--/redoc/
-These interfaces provide detailed documentation and testing capabilities for all REST API endpoints for frontend developments!
-
-
-
-
+These interfaces document and test all REST API endpoints for frontend integration.
