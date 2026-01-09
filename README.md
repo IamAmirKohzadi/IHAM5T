@@ -48,9 +48,23 @@ IHAM5T/
   core/
     core/
     accounts/
+      api/
+      models/
+      templates/
+      test/
     blog/
+      api/
+      management/
+      templates/
+      test/
     friends/
+      api/
+      templates/
+      test/
     website/
+      templates/
+      static/
+      test/
     templates/
     staticfiles/
     manage.py
