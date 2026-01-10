@@ -30,7 +30,10 @@ for env_path in env_paths:
             if not line or line.startswith("#") or "=" not in line:
                 continue
             key, value = line.split("=", 1)
-            os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
+            key = key.strip()
+            if not key:
+                continue
+            os.environ[key] = value.strip().strip('"').strip("'")
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-insecure-placeholder")
@@ -207,6 +210,7 @@ EMAIL_USE_TLS = False
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 
+# Google map API settings
 GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY", "")
 
 # reCAPTCHA settings
