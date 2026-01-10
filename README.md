@@ -100,6 +100,8 @@ Start the containers:
 docker compose up --build
 ```
 
+Ensure `.env` exists in the project root so Docker injects environment variables.
+
 Apply database migrations:
 ```
 docker compose exec backend python manage.py makemigrations
@@ -150,6 +152,11 @@ Generate sample users, categories, and posts:
 python manage.py insert_data
 ```
 
+Docker (seed data inside container):
+```
+docker compose exec backend python manage.py insert_data
+```
+
 ## Performance Testing (Locust)
 This project includes Locust services in Docker Compose:
 - master (Locust web UI)
@@ -190,4 +197,3 @@ These interfaces document and test all REST API endpoints for frontend integrati
 - Academic Year: 2025/2026  
 
 This project was developed as part of the bachelor diploma thesis requirements said above.
-

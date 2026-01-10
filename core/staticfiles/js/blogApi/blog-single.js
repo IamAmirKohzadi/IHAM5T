@@ -903,11 +903,33 @@ function buildCategories(categoriesInfo, baseUrl) {
 				},
 				error: function (xhr) {
 					var messageText = "Failed to post comment.";
+					var responseData = xhr.responseJSON;
+					if (!responseData && xhr.responseText) {
+						try {
+							responseData = JSON.parse(xhr.responseText);
+						} catch (e) {
+							responseData = null;
+						}
+					}
 					if (xhr.status === 403) {
 						messageText = "Verify your account before commenting.";
 					}
-					if (xhr.responseJSON && xhr.responseJSON.detail) {
-						messageText = xhr.responseJSON.detail;
+					if (responseData) {
+						if (responseData.detail) {
+							messageText = responseData.detail;
+						} else if (responseData.non_field_errors) {
+							messageText = responseData.non_field_errors.join(" ");
+						} else {
+							var errorKeys = Object.keys(responseData);
+							if (errorKeys.length) {
+								var firstValue = responseData[errorKeys[0]];
+								if (Array.isArray(firstValue)) {
+									messageText = firstValue[0];
+								} else if (typeof firstValue === "string") {
+									messageText = firstValue;
+								}
+							}
+						}
 					}
 					showCommentFormMessage(messageText);
 				}
