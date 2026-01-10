@@ -100,7 +100,7 @@ Start the containers:
 docker compose up --build
 ```
 
-Ensure `.env` exists in the project root so Docker injects environment variables.
+For Docker, place `.env` inside `core/` so it is visible to the container.
 
 Apply database migrations:
 ```
