@@ -41,6 +41,7 @@ DevOps and Tools
 ## Configuration
 Create a `.env` file in the project root based on `.env.example` and fill in your own keys.
 These values are intentionally not committed to GitHub.
+Set `SITE_URL` to match the base URL where the app is running (for activation links).
 
 ## Project Structure
 ```
@@ -118,6 +119,9 @@ docker compose exec backend python manage.py createsuperuser
 Backend will be available at:
 http://localhost:8000
 
+Admin panel (superuser required):
+http://localhost:8000/admin/
+
 SMTP4Dev (email testing) will be available at:
 http://localhost:5000
 
@@ -156,6 +160,10 @@ Docker (seed data inside container):
 ```
 docker compose exec backend python manage.py insert_data
 ```
+
+Notes:
+- Running this command multiple times will create additional records.
+- Ensure you have at least one category to link posts correctly.
 
 ## Performance Testing (Locust)
 This project includes Locust services in Docker Compose:

@@ -238,11 +238,108 @@
 		});
 	}
 
+	function initStoryTipModal($) {
+		var $modal = $("#story-tip-modal");
+		var $button = $("#story-tip-button");
+		var $cancel = $("#story-tip-cancel");
+		var $form = $("#story-tip-form");
+		var $message = $("#story-tip-message");
+
+		if (!$modal.length || !$button.length || !$form.length) {
+			return;
+		}
+
+		function showMessage(text, isSuccess) {
+			$message
+				.text(text)
+				.removeClass("success")
+				.toggleClass("success", Boolean(isSuccess))
+				.show();
+		}
+
+		function closeModal() {
+			$modal.removeClass("is-open").css("display", "none");
+		}
+
+		$button.on("click", function (event) {
+			event.preventDefault();
+			$message.hide();
+			$modal.css("display", "flex").addClass("is-open");
+		});
+
+		$cancel.on("click", function () {
+			closeModal();
+		});
+
+		$modal.on("click", function (event) {
+			if (event.target === this) {
+				closeModal();
+			}
+		});
+
+		$form.on("submit", function (event) {
+			event.preventDefault();
+			$message.hide();
+			var formData = new FormData(this);
+			if (window.grecaptcha) {
+				var token = grecaptcha.getResponse();
+				if (token) {
+					formData.set("g-recaptcha-response", token);
+				}
+			}
+			$.ajax({
+				url: $form.attr("action"),
+				method: "POST",
+				data: formData,
+				processData: false,
+				contentType: false,
+				headers: { "X-Requested-With": "XMLHttpRequest" },
+				success: function (data) {
+					showMessage(data.message || "Your story tip has been submitted.", true);
+					$form[0].reset();
+					if (window.grecaptcha) {
+						grecaptcha.reset();
+					}
+				},
+				error: function (xhr) {
+					var messageText = "Failed to submit story tip.";
+					var responseData = xhr.responseJSON;
+					if (!responseData && xhr.responseText) {
+						try {
+							responseData = JSON.parse(xhr.responseText);
+						} catch (e) {
+							responseData = null;
+						}
+					}
+					if (responseData) {
+						if (responseData.detail) {
+							messageText = responseData.detail;
+						} else if (responseData.non_field_errors) {
+							messageText = responseData.non_field_errors.join(" ");
+						} else if (responseData.errors) {
+							var errorKeys = Object.keys(responseData.errors);
+							if (errorKeys.length) {
+								var firstValue = responseData.errors[errorKeys[0]];
+								if (Array.isArray(firstValue)) {
+									messageText = firstValue[0];
+								} else if (typeof firstValue === "string") {
+									messageText = firstValue;
+								}
+							}
+						}
+					}
+					showMessage(messageText, false);
+				}
+			});
+		});
+	}
+
 	function init() {
 		if (!window.jQuery) {
 			return;
 		}
 		var $ = window.jQuery;
+		initStoryTipModal($);
 		var config = document.getElementById("top-stories-config");
 		if (!config) {
 			return;

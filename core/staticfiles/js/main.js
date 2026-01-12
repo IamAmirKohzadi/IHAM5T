@@ -255,12 +255,19 @@ $(document).ready(function() {
 
     //------- Google Map  js --------//  
 
-    var mapElement = document.getElementById("map");
-    if (mapElement && window.google && google.maps) {
-        google.maps.event.addDomListener(window, 'load', init);
-
-        function init() {
-            var lat = parseFloat(mapElement.getAttribute("data-lat")) || 40.6700;
+      var mapElement = document.getElementById("map");
+      if (mapElement) {
+          if (window.google && google.maps && google.maps.event && typeof google.maps.event.addDomListener === "function") {
+              google.maps.event.addDomListener(window, 'load', init);
+          } else {
+              window.addEventListener("load", init);
+          }
+  
+          function init() {
+              if (!window.google || !google.maps || !google.maps.Map) {
+                  return;
+              }
+              var lat = parseFloat(mapElement.getAttribute("data-lat")) || 40.6700;
             var lng = parseFloat(mapElement.getAttribute("data-lng")) || -73.9400;
             var markerTitle = mapElement.getAttribute("data-title") || "Our office";
             var mapOptions = {

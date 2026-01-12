@@ -28,7 +28,7 @@ function getCookie(name) {
 						if (!categoriesInfo.length) {
 							return '<li><a href="#">Uncategorized</a></li>';
 						}
-						return categoriesInfo.map(function (cat) {
+						return categoriesInfo.map(function (cat, index) {
 							var name = cat.name || "";
 							var link = baseUrl;
 							if (cat.id) {
@@ -36,14 +36,94 @@ function getCookie(name) {
 							} else {
 								link = "#";
 							}
-							return '<li><a href="' + link + '">' + name + '</a></li>';
+							var separator = index < categoriesInfo.length - 1 ? ", " : "";
+							return '<li><a href="' + link + '">' + name + '</a>' + separator + '</li>';
 						}).join("");
+					}
+
+					function buildTopCategoryCard(category, baseUrl, defaultImage) {
+						var templateHtml = $("#top-category-template").html();
+						if (!templateHtml) {
+							return null;
+						}
+						var $card = $(templateHtml);
+						var imageUrl = category.image || defaultImage;
+						var name = category.name || "Category";
+						var description = category.description || "More stories coming soon.";
+						var link = baseUrl;
+						if (category.id) {
+							link += "?categories=" + encodeURIComponent(category.id);
+						} else {
+							link = "#";
+						}
+
+						$card.find(".top-category-image").attr("src", imageUrl);
+						$card.find(".top-category-link").attr("href", link);
+						$card.find(".top-category-title").text(name);
+						$card.find(".top-category-desc").text(description);
+						return $card;
+					}
+
+					function buildTopCategoryPlaceholder(defaultImage) {
+						return buildTopCategoryCard(
+							{
+								name: "Coming soon",
+								description: "More categories will appear as stories are published.",
+								image: defaultImage
+							},
+							"#",
+							defaultImage
+						);
+					}
+
+					function loadTopCategories(categoryUrl, baseUrl, defaultImage) {
+						var $list = $("#top-category-list");
+						var $loading = $("#top-category-loading");
+						if (!$list.length || !categoryUrl) {
+							return;
+						}
+						$.getJSON(categoryUrl, function (data) {
+							var categories = data.results || data;
+							categories = Array.isArray(categories) ? categories : [];
+							categories.sort(function (a, b) {
+								return (b.post_count || 0) - (a.post_count || 0);
+							});
+							categories = categories.slice(0, 3);
+
+							$list.empty();
+							if ($loading.length) {
+								$loading.remove();
+							}
+
+							if (!categories.length) {
+								for (var i = 0; i < 3; i++) {
+									$list.append(buildTopCategoryPlaceholder(defaultImage));
+								}
+								return;
+							}
+
+							categories.forEach(function (category) {
+								var $card = buildTopCategoryCard(category, baseUrl, defaultImage);
+								if ($card) {
+									$list.append($card);
+								}
+							});
+
+							for (var j = categories.length; j < 3; j++) {
+								$list.append(buildTopCategoryPlaceholder(defaultImage));
+							}
+						}).fail(function () {
+							if ($loading.length) {
+								$loading.text("Categories will appear soon.");
+							}
+						});
 					}
 
 					window.addEventListener('load', function () {
 						if (!window.jQuery) {
 							return;
 						}
+						var $ = window.jQuery;
 						var config = document.getElementById("blog-home-config");
 						if (!config) {
 							return;
@@ -51,6 +131,9 @@ function getCookie(name) {
 						var baseUrl = config.dataset.blogHomeUrl;
 						var postListUrl = config.dataset.postListUrl;
 						var defaultImage = config.dataset.defaultImage;
+						var categoryUrl = config.dataset.categoryUrl;
+
+						loadTopCategories(categoryUrl, baseUrl, defaultImage);
 
 						var params = new URLSearchParams(window.location.search);
 						var page = parseInt(params.get('page') || '1', 10);
@@ -209,7 +292,6 @@ function getCookie(name) {
 						});
 
 						var categoriesCache = [];
-						var categoryUrl = config.dataset.categoryUrl;
 						var postCreateUrl = postListUrl;
 						var $createModal = $("#create-post-modal");
 						var $createMessage = $("#create-post-message");

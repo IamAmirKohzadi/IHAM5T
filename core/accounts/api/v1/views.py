@@ -41,7 +41,7 @@ class RegistrationApiView(RedirectAuthenticatedApiMixin,TokenForUserMixin,generi
             user_obj = get_object_or_404(User,email=email)
             token = self.get_tokens_for_user(user_obj)
             email_obj = EmailMessage('email/activation_email.tpl',
-                                {'token': token},
+                                {'token': token, 'site_url': settings.SITE_URL.rstrip('/')},
                                 'admin@admin.com',
                                 to=[email])
             EmailThread(email_obj).start()
@@ -172,7 +172,7 @@ class ActivationResendApiView(TokenForUserMixin,generics.GenericAPIView):
             user_obj = serializer.validated_data['user']
             token = self.get_tokens_for_user(user_obj)
             email_obj = EmailMessage('email/activation_email.tpl',
-                                     {'token': token},
+                                     {'token': token, 'site_url': settings.SITE_URL.rstrip('/')},
                                     'admin@admin.com',
                                     to=[user_obj.email])
             EmailThread(email_obj).start()

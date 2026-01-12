@@ -13,11 +13,11 @@
 		<div class="row d-flex align-items-center justify-content-center">
 			<div class="about-content blog-header-content col-lg-12">
 				<h1 class="text-white">
-					Dude Youƒ?Tre Getting
-					a Telescope
+					BuzzBlog Stories
+					That Matter
 				</h1>
 				<p class="text-white">
-					There is a moment in the life of any aspiring astronomer that it is time to buy that first
+					Latest news, campus updates, and local reporting from verified writers and contributors.
 				</p>
 			</div>
 		</div>
@@ -31,62 +31,28 @@
 <!-- Start top-category-widget Area -->
 <section class="top-category-widget-area pt-90 pb-90 ">
 	<div class="container">
-		<div class="row">
-			<div class="col-lg-4">
-				<div class="single-cat-widget">
-					<div class="content relative">
-						<div class="overlay overlay-bg"></div>
-						<a href="#" target="_blank">
-							<div class="thumb">
-								<img class="content-image img-fluid d-block mx-auto"
-									src="{% static 'img/default.jpg' %}" alt="">
-							</div>
-							<div class="content-details">
-								<h4 class="content-title mx-auto text-uppercase">Social life</h4>
-								<span></span>
-								<p>Enjoy your social life together</p>
-							</div>
-						</a>
-					</div>
-				</div>
-			</div>
-			<div class="col-lg-4">
-				<div class="single-cat-widget">
-					<div class="content relative">
-						<div class="overlay overlay-bg"></div>
-						<a href="#" target="_blank">
-							<div class="thumb">
-								<img class="content-image img-fluid d-block mx-auto"
-									src="{% static 'img/default.jpg' %}" alt="">
-							</div>
-							<div class="content-details">
-								<h4 class="content-title mx-auto text-uppercase">Politics</h4>
-								<span></span>
-								<p>Be a part of politics</p>
-							</div>
-						</a>
-					</div>
-				</div>
-			</div>
-			<div class="col-lg-4">
-				<div class="single-cat-widget">
-					<div class="content relative">
-						<div class="overlay overlay-bg"></div>
-						<a href="#" target="_blank">
-							<div class="thumb">
-								<img class="content-image img-fluid d-block mx-auto"
-									src="{% static 'img/default.jpg' %}" alt="">
-							</div>
-							<div class="content-details">
-								<h4 class="content-title mx-auto text-uppercase">Food</h4>
-								<span></span>
-								<p>Let the food be finished</p>
-							</div>
-						</a>
-					</div>
-				</div>
-			</div>
+		<div class="row" id="top-category-list">
+			<div class="col-12 text-center" id="top-category-loading">Loading categories...</div>
 		</div>
+		<template id="top-category-template">
+			<div class="col-lg-4">
+				<div class="single-cat-widget">
+					<div class="content relative">
+						<div class="overlay overlay-bg"></div>
+						<a href="#" class="top-category-link" target="_blank" rel="noopener">
+							<div class="thumb">
+								<img class="content-image img-fluid d-block mx-auto top-category-image" src="" alt="">
+							</div>
+							<div class="content-details">
+								<h4 class="content-title mx-auto text-uppercase top-category-title"></h4>
+								<span></span>
+								<p class="top-category-desc"></p>
+							</div>
+						</a>
+					</div>
+				</div>
+			</div>
+		</template>
 	</div>
 </section>
 <!-- End top-category-widget Area -->
@@ -201,7 +167,7 @@
 							</div>
 						</div>
 						{% else %}
-						<a href="{% url 'login' %}">Login to create a post!</a>
+						<a href="{% url 'login' %}" class="primary-btn text-uppercase">Login to create a post!</a>
 						{% endif %}
 					</div>
 					<div class="single-sidebar-widget filter-widget">

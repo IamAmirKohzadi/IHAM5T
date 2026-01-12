@@ -85,16 +85,15 @@
 		<div class="row align-items-center justify-content-end">
 			<div class="col-lg-6 col-md-12 home-about-left">
 				<h1>
-					Did not find your Package? <br>
-					Feel free to ask us. <br>
-					Weƒ?~ll make it for you
+					Have a lead we should cover? <br>
+					Send it to BuzzBlog. <br>
+					We investigate and publish fast.
 				</h1>
 				<p>
-					inappropriate behavior is often laughed off as ƒ?oboys will be boys,ƒ?? women face higher conduct
-					standards especially in the workplace. Thatƒ?Ts why itƒ?Ts crucial that, as women, our behavior on the
-					job is beyond reproach. inappropriate behavior is often laughed.
+					Share tips, local issues, or breaking stories. Our editors review every message
+					and follow up quickly. Your voice helps us keep the community informed.
 				</p>
-				<a href="#" class="primary-btn text-uppercase">request custom price</a>
+				<a href="#" id="story-tip-button" class="primary-btn text-uppercase">submit a story tip</a>
 			</div>
 			<div class="col-lg-6 col-md-12 home-about-right no-padding">
 				<img class="img-fluid" src="{% static 'img/default.jpg' %}" alt="">
@@ -103,6 +102,58 @@
 	</div>
 </section>
 <!-- End home-about Area -->
+
+<div id="story-tip-modal" class="story-tip-modal" style="display:none;">
+	<div class="story-tip-card">
+		<h5>Submit a Story Tip</h5>
+		<form id="story-tip-form" action="{% url 'website:story-tip' %}" method="post" enctype="multipart/form-data">
+			{% csrf_token %}
+			{% if request.user.is_authenticated %}
+			<p class="story-tip-note">We will use your account name and email.</p>
+			{% else %}
+			<div class="story-tip-row">
+				<input name="contact_name" placeholder="Your name" class="form-control" required="" type="text">
+			</div>
+			<div class="story-tip-row">
+				<input name="contact_email" placeholder="Your email"
+					pattern="[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{1,63}$" class="form-control" required=""
+					type="email">
+			</div>
+			{% endif %}
+			<div class="story-tip-row">
+				<input name="title" placeholder="Tip title" class="form-control" required="" type="text">
+			</div>
+			<div class="story-tip-row">
+				<textarea name="summary" class="form-control" rows="3" placeholder="Short summary"></textarea>
+			</div>
+			<div class="story-tip-row">
+				<textarea name="details" class="form-control" rows="6" placeholder="Full details" required=""></textarea>
+			</div>
+			<div class="story-tip-row">
+				<input name="location" placeholder="Location (optional)" class="form-control" type="text">
+			</div>
+			<div class="story-tip-row">
+				<input name="event_date" class="form-control" type="datetime-local">
+			</div>
+			<div class="story-tip-row">
+				<input name="source_url" placeholder="Source link (optional)" class="form-control" type="url">
+			</div>
+			<div class="story-tip-row">
+				<input name="attachment" class="form-control" type="file">
+			</div>
+			{% if recaptcha_site_key and not request.user.is_authenticated %}
+			<div class="story-tip-row">
+				<div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}"></div>
+			</div>
+			{% endif %}
+			<div id="story-tip-message" class="story-tip-message" style="display:none;"></div>
+			<div class="story-tip-actions">
+				<button type="button" id="story-tip-cancel" class="primary-btn text-uppercase">Cancel</button>
+				<button type="submit" class="primary-btn text-uppercase">Submit Tip</button>
+			</div>
+		</form>
+	</div>
+</div>
 
 
 <!-- Start blog Area -->
@@ -143,4 +194,7 @@
 </section>
 <!-- End recent-blog Area -->
 <script src="{% static 'js/website/index.js' %}"></script>
+{% if recaptcha_site_key and not request.user.is_authenticated %}
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+{% endif %}
 {% endblock %}

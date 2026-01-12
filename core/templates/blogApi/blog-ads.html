@@ -2,9 +2,30 @@
 
 
 <div class="single-sidebar-widget ads-widget">
-    <a href="#"><img class="img-fluid" src="{% static 'img/blog/ads-banner.jpg' %}" alt=""></a>
+    {% with settings=site_settings %}
+    {% if settings and settings.ads_link %}
+    <a href="{{ settings.ads_link }}" target="_blank" rel="noopener">
+        {% if settings.ads_image %}
+        <img class="img-fluid" src="{{ settings.ads_image.url }}" alt="">
+        {% else %}
+        <img class="img-fluid" src="{% static 'img/blog/ads-banner.jpg' %}" alt="">
+        {% endif %}
+    </a>
+    {% else %}
+    <a href="#">
+        {% if settings and settings.ads_image %}
+        <img class="img-fluid" src="{{ settings.ads_image.url }}" alt="">
+        {% else %}
+        <img class="img-fluid" src="{% static 'img/blog/ads-banner.jpg' %}" alt="">
+        {% endif %}
+    </a>
+    {% endif %}
     <p>
-        for any add inquiry, you can contact me at
-        <a href="mailto:amir.kohzadi@gmail.com">this email address!</a>
+        {% if settings and settings.ads_description %}
+        {{ settings.ads_description }}
+        {% else %}
+        For ad inquiries, contact us at <a href="mailto:amir.kohzadi@gmail.com">this email address!</a>
+        {% endif %}
     </p>
+    {% endwith %}
 </div>
