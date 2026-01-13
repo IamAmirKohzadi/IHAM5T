@@ -4,7 +4,7 @@ Advanced Blog Management System with User Authentication and Content Recommendat
 Author: Amir reza Kohzadi
 
 ## Overview
-IHAM5T is a full-stack blog and news platform developed as a bachelor diploma project at the University of Pecs.
+My project is a full-stack blog and news platform developed as a bachelor's diploma project at the University of Pécs.
 It provides secure user authentication, blog content management, social interactions, and rule-based content discovery
 through a REST API built with Django 5 and Django REST Framework (DRF).
 
