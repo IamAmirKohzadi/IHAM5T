@@ -1,6 +1,8 @@
 # IHAM5T - Advanced Blog Management System
 Advanced Blog Management System with User Authentication and Content Recommendation
 
+Author: Amir reza Kohzadi
+
 ## Overview
 IHAM5T is a full-stack blog and news platform developed as a bachelor diploma project at the University of Pecs.
 It provides secure user authentication, blog content management, social interactions, and rule-based content discovery
